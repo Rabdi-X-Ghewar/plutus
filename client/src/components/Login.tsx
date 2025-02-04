@@ -1,5 +1,5 @@
 import { useLogin, usePrivy } from "@privy-io/react-auth";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 
 import { Button } from "./ui/button";
 import { useState } from "react";
@@ -8,7 +8,7 @@ import { useNavigate } from "react-router";
 export default function Login() {
     const navigate = useNavigate();
 
-    const { ready, authenticated, logout, user, linkWallet } = usePrivy();
+    const { authenticated,  user, linkWallet } = usePrivy();
     const { login } = useLogin({
         onComplete: () => {
             if (!user?.wallet?.address) {
