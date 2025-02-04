@@ -1,13 +1,22 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { BrowserRouter, Route, Routes } from 'react-router'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+import HomeBeforeLogin from './pages/HomeBeforeLogin';
+import HomeAfterLogin from './pages/HomeAfterLogin';
 
+function App() {
+
+  const { authenticated } = usePrivy();
+
+  const { wallets } = useWallets();
+  console.log(JSON.stringify(wallets));
   return (
-    <div className=" text-4xl text-red-700"> Hello World</div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={authenticated ? <HomeAfterLogin /> : <HomeBeforeLogin />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

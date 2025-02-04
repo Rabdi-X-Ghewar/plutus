@@ -1,0 +1,38 @@
+import Navbar from "../components/Navbar"
+import { MainNav } from "../components/MainNav"
+import { AppSidebar } from "../components/AppSidebar"
+
+import { SidebarProvider, SidebarTrigger } from "../components/ui/sidebar"
+
+
+const HomeAfterLogin = () => {
+    return (
+        <SidebarProvider>
+            <div className="grid min-h-screen w-full lg:grid-cols-[auto_1fr]">
+                <AppSidebar />
+                <div className="flex flex-col">
+                    <header className="border-b">
+                        <div className="flex h-16 items-center px-4 gap-4">
+                            <SidebarTrigger className="lg:hidden" />
+                            <div className="flex items-center gap-2 mr-4">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                                    <span className="text-lg font-bold text-primary-foreground">P</span>
+                                </div>
+                                <span className="font-semibold text-xl">Plutus</span>
+                            </div>
+                            <MainNav />
+                        </div>
+                        {/* <div className="border-t">
+                            <LocationSelect />
+                        </div> */}
+                    </header>
+                    {/* <main className="flex-1 p-4">
+                        <Activities />
+                    </main> */}
+                </div>
+            </div>
+        </SidebarProvider>
+    )
+}
+
+export default HomeAfterLogin
