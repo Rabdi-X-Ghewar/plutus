@@ -1,5 +1,3 @@
-"use client"
-
 import { Home, LayoutGrid, Ticket, Wine, Users, Fish, Waves, Trophy, UserCircle } from "lucide-react"
 import {
     Sidebar,
@@ -29,7 +27,7 @@ export function AppSidebar() {
     const { logout, user, linkWallet } = usePrivy();
     const { wallets } = useWallets()
     return (
-        <Sidebar collapsible="icon" className="border-r">
+        <Sidebar collapsible="icon" className="border-r z-50 fixed h-screen w-64 bg-white ">
             <SidebarHeader className="border-b px-2 py-4">
                 <SidebarMenu>
                     <SidebarMenuItem>

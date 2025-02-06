@@ -1,16 +1,19 @@
-import { useLogin, usePrivy } from "@privy-io/react-auth";
+import { useCreateWallet, useLogin, usePrivy } from "@privy-io/react-auth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { addUserToDatabase } from "../apiClient";
 
 export default function Login() {
+    const { createWallet } = useCreateWallet();
     const navigate = useNavigate();
 
-    const { authenticated,  user, linkWallet } = usePrivy();
+    const { authenticated, user, linkWallet } = usePrivy();
     const { login } = useLogin({
-        onComplete: () => {
+        onComplete: async () => {
+            await addUserToDatabase(user);
             if (!user?.wallet?.address) {
                 setIsModalOpen(true);
             }
@@ -20,30 +23,12 @@ export default function Login() {
         },
     });
 
-
-
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const handleCreateServerWallet = async () => {
+    const handleCreateSEmbeddedWallet = async () => {
         try {
-            // Call your backend API to create a server wallet
-            const response = await fetch("/api/create-server-wallet", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ userId: user?.id }),
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to create server wallet");
-            }
-
-            const { id, address } = await response.json();
-            console.log("Server Wallet Created:", { id, address });
-
+            createWallet();
             navigate("/");
-            // router.push("/home");
         } catch (error) {
             console.error("Error creating server wallet:", error);
         }
@@ -77,7 +62,7 @@ export default function Login() {
                             Link External Wallet
                         </Button>
                         <Button
-                            onClick={handleCreateServerWallet}
+                            onClick={handleCreateSEmbeddedWallet}
                             className="w-full"
                         >
                             Create Server Wallet

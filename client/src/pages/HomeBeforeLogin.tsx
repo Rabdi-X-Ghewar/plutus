@@ -11,7 +11,6 @@ const HomeBeforeLogin = () => {
                 <div className="container mx-auto px-4">
                     <ExploreSection />
                 </div>
-                <FloatingIcons />
                 <Features />
             </main>
         </div>

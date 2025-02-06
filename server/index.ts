@@ -1,22 +1,37 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
+import mongoose from 'mongoose';
+import bodyParser from 'body-parser';
 import cors from 'cors';
-import morgan from 'morgan';
+import { User, IUser } from './models/User';
 import dotenv from 'dotenv';
+
+import userRoutes from './routes/userRoutes';
+import serverWalletRoutes from './routes/serverWalletRoutes'
+import { PrivyClient } from '@privy-io/server-auth';
+
+const app = express();
+const PORT = process.env.PORT || 3001;
 
 dotenv.config();
 
-const app = express();
-const PORT = process.env.PORT || 4000;
-
-
 app.use(cors());
-app.use(morgan('dev'));
-app.use(express.json());
+app.use(bodyParser.json());
+
+console.log("Privy: ", process.env.PRIVY_APP_ID,process.env.PRIVY_SECRET!);
+
+
 
 app.get('/', (req: Request, res: Response) => {
     res.json({ message: 'Hello, World!' });
 });
 
+
+
+app.use('/api', userRoutes);
+app.use('/api', serverWalletRoutes);
+
+mongoose.connect(process.env.MONGO_URI!).then(() => console.log('MongoDB connected'))
+    .catch((err) => console.error('MongoDB connection error:', err));
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
