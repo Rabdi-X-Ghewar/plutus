@@ -4,6 +4,7 @@ import { createViemAccount } from '@privy-io/server-auth/viem';
 import { sepolia } from 'viem/chains';
 import { ethers } from "ethers";
 import { User } from "../models/User";
+import { createPolicy } from "./policyService";
 
 const privy = new PrivyClient(
     'cm6m2x54x009tkqmmiupwl2eg',
@@ -14,6 +15,35 @@ const privy = new PrivyClient(
         }
     }
 );
+
+
+const policy = {
+    "version": "1.0",
+    "name": "Max 0.01 ETH Transactions on Sepolia",
+    "chain_type": "ethereum",
+    "method_rules": [
+        {
+            "method": "eth_sendTransaction",
+            "rules": [
+                {
+                    "name": "Limit transaction value to max 0.01 ETH",
+                    "conditions": [
+                        {
+                            "field_source": "ethereum_transaction",
+                            "field": "value",
+                            "operator": "lte",
+                            "value": "10000000000000000"  // 0.01 ETH in wei
+                        }
+                    ],
+                    "action": "ALLOW"
+                }
+            ]
+        }
+    ],
+    "default_action": "DENY"
+}
+
+const policyId = createPolicy(policy);
 
 
 export async function createWallet(email: string): Promise<{ id: string; address: string; chainType: string }> {
@@ -30,11 +60,7 @@ export async function createWallet(email: string): Promise<{ id: string; address
         }
         const { id, address, chainType } = await privy.walletApi.create({
             chainType: 'ethereum',
-            // options: {
-            //     walletApi: {
-            //         authorizationPrivateKey: 'wallet-auth:MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgiNhlIWPT9yr/XRmb3qgssVWSr91E4XX8X62HbPVAMi+hRANCAARx5wcOumvPh0Yweqsum+7NvlQoTC2qL1XoCio+JxBe8nL3fB4KorklityyACRqAdnd7sXoBr414dJbXBB5rBgm'
-            //     }
-            // }
+            policyIds: [policyId]
         });
 
 
@@ -100,26 +126,45 @@ export async function sendTransaction(
             throw new Error('User does not have a server wallet');
         }
         const { id: walletId, address } = user.serverWallet;
-        const account = await createViemAccount({
-            walletId,
-            address: address as `0x${string}`,
-            privy,
+        const valueInWei = parseEther(valueInEth.toString());
+
+
+        const valueInHex = `0x${valueInWei.toString(16)}`;
+
+        const data = await privy.walletApi.ethereum.sendTransaction({
+            walletId: walletId,
+            caip2: 'eip155:11155111',
+            transaction: {
+                to: to,
+                value: valueInHex,
+                chainId: 11155111,
+            },
         });
 
-        const client = createWalletClient({
-            account,
-            chain: sepolia,
-            transport: http(),
-        });
+        const { hash } = data;
 
-        const hash = await client.sendTransaction({
-            to,
-            value: parseEther(valueInEth.toString()),
-            account,
-        });
+
+        // const account = await createViemAccount({
+        //     walletId,
+        //     address: address as `0x${string}`,
+        //     privy,
+        // }); 
+        // console.log(account);
+
+        // const client = createWalletClient({
+        //     account,
+        //     chain: sepolia,
+        //     transport: http(),
+        // });
+        // console.log(client);
+        // const hash = await client.sendTransaction({
+        //     to,
+        //     value: parseEther(valueInEth.toString()),
+        //     account,
+        // });
 
         console.log('Transaction Sent:', hash);
-        return hash;
+        return hash as `0x${string}`;
     } catch (error) {
         console.error('Error sending transaction:', error);
         throw error;

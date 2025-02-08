@@ -7,6 +7,7 @@ import { BrowserRouter } from 'react-router'
 
 import { toSolanaWalletConnectors } from '@privy-io/react-auth/solana';
 import ErrorBoundary from './ErrorBoundary.tsx'
+import { Toaster } from 'sonner'
 
 const solanaConnectors = toSolanaWalletConnectors({
   // By default, shouldAutoConnect is enabled
@@ -36,6 +37,8 @@ createRoot(document.getElementById('root')!).render(
         }}
       >
         <App />
+        <Toaster />
+
       </PrivyProvider>
     </ErrorBoundary>
 

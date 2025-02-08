@@ -29,3 +29,20 @@ export const fetchWallet = async (email: string) => {
         console.error('Error adding user:', error);
     }
 }
+
+
+export const sendServerTransaction = async (email: string, to: string, valueInEth: string) => {
+    try {
+        const response = await fetch('http://localhost:3001/api/send-transaction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, to, valueInEth }),
+        });
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.log('Error sending transaction:', error);
+    }
+}

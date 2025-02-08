@@ -1,12 +1,26 @@
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { ConnectedWallet, usePrivy, useWallets } from "@privy-io/react-auth";
 import { useEffect, useState } from "react";
 import { getWalletBalance } from "../lib/fetchWalletBalance";
-import { Wallet2, CreditCard, Coins } from "lucide-react";
-import { fetchWallet } from "../apiClient";
+import { Wallet2, CreditCard, Coins, Copy, Send, Wallet } from "lucide-react";
+import { fetchWallet, sendServerTransaction } from "../apiClient";
+import { toast } from "sonner";
+import { useCreateWallet } from '@privy-io/react-auth';
+import { createWalletClient, custom, Hex, parseEther } from 'viem';
+import { sepolia } from 'viem/chains';
 
-type WalletBalance = {
+import { Button } from "../components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
+import { Label } from "../components/ui/label";
+import { Input } from "../components/ui/input";
+
+
+
+
+
+
+export type WalletBalance = {
     address: string;
-    clientType: string;
+    clientType?: string;
     balance: number;
 };
 
@@ -55,10 +69,14 @@ const truncateAddress = (address: string) => {
 
 const Profile = () => {
     const { wallets } = useWallets();
-    const {user} = usePrivy();
+    const { user } = usePrivy();
     const [walletBalances, setWalletBalances] = useState<WalletBalance[]>([]);
-    const [stakingProtocols, setStakingProtocols] = useState<string[]>([]);
     const [serverWallet, setServerWallet] = useState<{ address: string; balance: number } | null>(null);
+    const [selectedWallet, setSelectedWallet] = useState<WalletBalance | undefined>(undefined);
+    const [destinationAddress, setDestinationAddress] = useState('');
+    const [amount, setAmount] = useState('');
+    const [open, setOpen] = useState(false);
+
 
 
     useEffect(() => {
@@ -101,6 +119,66 @@ const Profile = () => {
         fetchWalletData();
     }, [wallets]);
 
+    const handleCopyAddress = async (address: string) => {
+        try {
+            await navigator.clipboard.writeText(address);
+            toast.success("Address copied to clipboard");
+        } catch (error) {
+            console.error("Failed to copy address:", error);
+            toast.error("Failed to copy address");
+        }
+    };
+
+
+    const sendTransaction = async () => {
+        if (!selectedWallet) return;
+
+        try {
+            if (selectedWallet.address === serverWallet?.address) {
+                // Call server wallet transaction
+                const hash = await sendServerTransaction(user?.email?.address!, destinationAddress, amount);
+                if (hash) {
+                    toast.success("Server wallet transaction successful");
+                    setOpen(false)
+                }
+            } else {
+                const wallet = wallets.find(wallet => wallet.address === selectedWallet.address);
+                if (!wallet) {
+                    console.error('Wallet not found');
+                    return;
+                }
+
+                await wallet.switchChain(sepolia.id);
+                const provider = await wallet.getEthereumProvider();
+                if (!provider) {
+                    console.error('Ethereum provider is undefined');
+                    return;
+                }
+
+                const walletClient = createWalletClient({
+                    account: wallet.address as Hex,
+                    chain: sepolia,
+                    transport: custom(provider),
+                });
+
+                const [address] = await walletClient.getAddresses();
+                const hash = await walletClient.sendTransaction({
+                    account: address,
+                    to: destinationAddress as `0x${string}`,
+                    value: parseEther(amount),
+                });
+
+                toast.success("Transaction successful");
+                setOpen(false)
+
+            }
+
+        } catch (error) {
+            console.log("Error sending transaction:", error);
+            toast.error("Error sending transaction");
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="mb-8">
@@ -117,7 +195,98 @@ const Profile = () => {
                             <p className="text-sm">Balance: {serverWallet?.balance.toFixed(4) || "0.0000"} ETH</p>
                         </div>
                     </div>
+                    {serverWallet && (
+                        <button onClick={() => handleCopyAddress(serverWallet.address)}>
+                            <Copy className="w-5 h-5 text-white hover:text-gray-200 cursor-pointer" />
+                        </button>
+                    )}
                 </div>
+                {serverWallet && (
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                            <Button
+                                onClick={() => setSelectedWallet(serverWallet)}
+                                className="bg-primary hover:bg-primary/90 text-white"
+                            >
+                                Send Transaction
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle className="text-2xl font-bold">Send Transaction</DialogTitle>
+                                <DialogDescription className="text-muted-foreground">
+                                    Send ETH to another wallet address. Please verify all details before confirming.
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="grid gap-6 py-4">
+                                <div className="flex flex-col gap-2">
+                                    <Label className="text-sm font-medium">From</Label>
+                                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
+                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <Wallet className="h-4 w-4 text-primary" />
+                                        </div>
+                                        <span className="font-mono text-sm">
+                                            {truncateAddress(selectedWallet?.address || "")}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="destination" className="text-sm font-medium">
+                                        Destination Address
+                                    </Label>
+                                    <Input
+                                        id="destination"
+                                        placeholder="0x..."
+                                        value={destinationAddress}
+                                        onChange={(e) => setDestinationAddress(e.target.value)}
+                                        className="font-mono"
+                                    />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="amount" className="text-sm font-medium">
+                                        Amount (ETH)
+                                    </Label>
+                                    <div className="relative">
+                                        <Input
+                                            id="amount"
+                                            type="number"
+                                            placeholder="0.0"
+                                            value={amount}
+                                            onChange={(e) => setAmount(e.target.value)}
+                                            className="pr-12"
+                                        />
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                                            ETH
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <DialogFooter>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => {
+                                        setOpen(false);
+                                        setDestinationAddress("");
+                                        setAmount("");
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={sendTransaction}
+                                    className="bg-primary hover:bg-primary/90 text-white"
+                                >
+                                    <Send className="w-4 h-4 mr-2" />
+                                    Send Transaction
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
@@ -127,14 +296,17 @@ const Profile = () => {
                             className="bg-white rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl border border-gray-100">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center space-x-3">
-                                    {getWalletIcon(wallet.clientType)}
+                                    {getWalletIcon(wallet.clientType || '')}
                                     <div>
                                         <h3 className="font-semibold text-lg text-gray-900 capitalize">
-                                            {getWalletName(wallet.clientType)} Wallet
+                                            {getWalletName(wallet.clientType || '')} Wallet
                                         </h3>
                                         <p className="text-sm text-gray-500 font-mono">
                                             {truncateAddress(wallet.address)}
                                         </p>
+                                        <button onClick={() => handleCopyAddress(wallet.address)}>
+                                            <Copy className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-pointer" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -148,6 +320,93 @@ const Profile = () => {
                                     </p>
                                 </div>
                             </div>
+
+                            <Dialog open={open} onOpenChange={setOpen}>
+                                <DialogTrigger asChild>
+                                    <Button
+                                        onClick={() => setSelectedWallet(wallet)}
+                                        className="bg-primary hover:bg-primary/90 text-white"
+                                    >
+                                        Send Transaction
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[425px]">
+                                    <DialogHeader>
+                                        <DialogTitle className="text-2xl font-bold">Send Transaction</DialogTitle>
+                                        <DialogDescription className="text-muted-foreground">
+                                            Send ETH to another wallet address. Please verify all details before confirming.
+                                        </DialogDescription>
+                                    </DialogHeader>
+
+                                    <div className="grid gap-6 py-4">
+                                        <div className="flex flex-col gap-2">
+                                            <Label className="text-sm font-medium">From</Label>
+                                            <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
+                                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                                    <Wallet className="h-4 w-4 text-primary" />
+                                                </div>
+                                                <span className="font-mono text-sm">
+                                                    {truncateAddress(selectedWallet?.address || "")}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="destination" className="text-sm font-medium">
+                                                Destination Address
+                                            </Label>
+                                            <Input
+                                                id="destination"
+                                                placeholder="0x..."
+                                                value={destinationAddress}
+                                                onChange={(e) => setDestinationAddress(e.target.value)}
+                                                className="font-mono"
+                                            />
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="amount" className="text-sm font-medium">
+                                                Amount (ETH)
+                                            </Label>
+                                            <div className="relative">
+                                                <Input
+                                                    id="amount"
+                                                    type="number"
+                                                    placeholder="0.0"
+                                                    value={amount}
+                                                    onChange={(e) => setAmount(e.target.value)}
+                                                    className="pr-12"
+                                                />
+                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                                                    ETH
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <DialogFooter>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => {
+                                                setOpen(false);
+                                                setDestinationAddress("");
+                                                setAmount("");
+                                            }}
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            onClick={sendTransaction}
+                                            className="bg-primary hover:bg-primary/90 text-white"
+                                        >
+                                            <Send className="w-4 h-4 mr-2" />
+                                            Send Transaction
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+
+
                         </div>
                     ))
                 ) : (

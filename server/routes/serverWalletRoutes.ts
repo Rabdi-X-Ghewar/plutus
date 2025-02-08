@@ -36,7 +36,7 @@ router.post('/sign-message', async (req: Request, res: Response): Promise<any> =
 
 router.post('/send-transaction', async (req: Request, res: Response): Promise<any> => {
     const { email, to, valueInEth } = req.body;
-
+    console.log(email, to, valueInEth);
     if (!email || !to || !valueInEth) {
         return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
