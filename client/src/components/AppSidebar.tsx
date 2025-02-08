@@ -13,14 +13,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from "./ui/button";
 
 const sidebarItems = [
-    { icon: LayoutGrid, label: "Browse", href: "#" },
-    { icon: Ticket, label: "Tickets", href: "#" },
-    { icon: Wine, label: "Experiences", href: "#" },
-    { icon: Users, label: "Groups", href: "#" },
+    { icon: LayoutGrid, label: "Dashboard", href: "#" },
+    { icon: Ticket, label: "Wallet Watcher", href: "#" },
+    { icon: Wine, label: "Transactions", href: "#" },
+    { icon: Users, label: "Chat Bot", href: "#" },
     { icon: Fish, label: "Activities", href: "#" },
-    { icon: Waves, label: "Beach", href: "#" },
-    { icon: Trophy, label: "Sports", href: "#" },
-    { icon: Home, label: "Stays", href: "#" },
+    { icon: Waves, label: "Bots", href: "#" },
+    { icon: Trophy, label: "Rewards", href: "#" },
+    { icon: Home, label: "Settings", href: "#" },
 ]
 
 export function AppSidebar() {
@@ -36,7 +36,7 @@ export function AppSidebar() {
                                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                                     <span className="text-lg font-bold text-primary-foreground">P</span>
                                 </div>
-                                <span className="font-semibold text-xl">Plutus</span>
+                                <span className="font-semibold text-xl">Pluto</span>
                             </a>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

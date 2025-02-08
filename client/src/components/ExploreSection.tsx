@@ -4,17 +4,17 @@ import FloatingIcons from './FloatingIcons';
 
 const ExploreSection = () => {
     return (
-        <section className="pt-32 pb-20">
+        <section className="pt-32 pb-20 bg-gray-900">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <div className="text-left">
-                    <h1 className="text-7xl font-bold mb-6 bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent leading-tight">
-                        Explore the Future<br />of Finance
+                    <h1 className="text-7xl font-bold mb-6 bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent leading-tight">
+                        Explore the Future<br />of Finance with COOKIE DAO
                     </h1>
-                    <p className="text-xl text-gray-600 mb-12 max-w-2xl leading-relaxed">
-                        Discover a new way to manage, invest, and grow your wealth with Plutus.
+                    <p className="text-xl text-gray-300 mb-12 max-w-2xl leading-relaxed">
+                        Discover a new way to manage, invest, and grow your wealth with Pluto.
                         Join thousands of users already transforming their financial future.
                     </p>
-                    <button className="group px-8 py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-full hover:shadow-lg transition-all duration-300 text-lg font-semibold inline-flex items-center">
+                    <button className="group px-8 py-4 bg-gradient-to-r from-emerald-400 to-teal-400 text-gray-900 rounded-full hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-300 text-lg font-semibold inline-flex items-center">
                         Start Exploring
                         <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                     </button>
@@ -42,12 +42,12 @@ const ExploreSection = () => {
                         description: "Support for all major blockchain networks"
                     }
                 ].map((item, index) => (
-                    <div key={index} className="bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-100 hover:shadow-md transition-shadow">
-                        <div className="bg-yellow-500/10 w-12 h-12 rounded-full flex items-center justify-center mb-4 text-yellow-600">
+                    <div key={index} className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-700 hover:shadow-xl hover:shadow-emerald-500/10 transition-all">
+                        <div className="bg-emerald-400/10 w-12 h-12 rounded-full flex items-center justify-center mb-4 text-emerald-400">
                             {item.icon}
                         </div>
-                        <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
-                        <p className="text-gray-600">{item.description}</p>
+                        <h3 className="text-lg font-semibold mb-2 text-gray-100">{item.title}</h3>
+                        <p className="text-gray-400">{item.description}</p>
                     </div>
                 ))}
             </div>

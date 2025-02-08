@@ -18,7 +18,7 @@ const HomeAfterLogin = () => {
                                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                                     <span className="text-lg font-bold text-primary-foreground">P</span>
                                 </div>
-                                <span className="font-semibold text-xl">Plutus</span>
+                                <span className="font-semibold text-xl">Pluto</span>
                             </div>
                             <MainNav />
                         </div>

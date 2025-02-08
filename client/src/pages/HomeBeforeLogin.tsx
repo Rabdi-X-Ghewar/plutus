@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar"
 
 const HomeBeforeLogin = () => {
     return (
-        <div className="min-h-screen bg-gradient-to-b from-white to-cream">
+        <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
             <Navbar />
             <main>
                 <div className="container mx-auto px-4">
