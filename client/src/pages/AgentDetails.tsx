@@ -247,7 +247,7 @@ const AgentDetails: React.FC = () => {
       <div className="flex-1 p-6 overflow-y-auto">{renderCard()}</div>
       {authenticated && embeddedWallet ? (
         <StakingCard
-          web3Provider={LidoSDKCore.createWeb3Provider(17000, window.ethereum)}
+          web3Provider={LidoSDKCore.createWeb3Provider(11155111, window.ethereum)}
           account={user?.wallet?.address || ""}
         />
 

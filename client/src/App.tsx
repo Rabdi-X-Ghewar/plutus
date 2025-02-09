@@ -11,6 +11,7 @@ import WalletTracker from './pages/WalletTracker';
 import Profile from './pages/Profile';
 import SavedWalletsPage from './pages/SavedWalletsPage';
 import TransactionPage from './pages/Transactions';
+import AgentDetails from './pages/AgentDetails';
 
 function App() {
 
@@ -36,6 +37,7 @@ function App() {
               <Route path="/watcher" element={<WalletTracker />} />
               <Route path="/saved-wallets" element={<SavedWalletsPage />} />
               <Route path="/transactions" element={<TransactionPage />} />
+              <Route path="/chat-bot" element={<AgentDetails />} />
             </>
           )}
         </Routes>

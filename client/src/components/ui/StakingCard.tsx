@@ -27,6 +27,9 @@ interface StakingCardProps {
   account: string;
 }
 
+const INFURA_API_KEY = "00d918690e7246579fb6feabe829e5c8"; // Replace with your Infura API Key
+const network = "sepolia"; // or "goerli", "polygon", etc.
+
 export const StakingCard: React.FC<StakingCardProps> = ({
   web3Provider,
   account,
@@ -48,8 +51,8 @@ export const StakingCard: React.FC<StakingCardProps> = ({
 
       try {
         const lidoSDK = new LidoSDK({
-          rpcUrls: ["https://ethereum-holesky.publicnode.com"],
-          chainId: 17000,
+          rpcUrls: [`https://${network}.infura.io/v3/${INFURA_API_KEY}`],
+          chainId: 11155111,
           web3Provider,
         });
 
@@ -71,8 +74,8 @@ export const StakingCard: React.FC<StakingCardProps> = ({
 
       try {
         const lidoSDK = new LidoSDK({
-          rpcUrls: ["https://ethereum-holesky.publicnode.com"],
-          chainId: 17000,
+          rpcUrls: [`https://${network}.infura.io/v3/${INFURA_API_KEY}`],
+          chainId: 11155111,
           web3Provider,
         });
         const limit = await lidoSDK.stake.getStakeLimitInfo();
@@ -90,8 +93,8 @@ export const StakingCard: React.FC<StakingCardProps> = ({
 
     try {
       const lidoSDK = new LidoSDK({
-        rpcUrls: ["https://ethereum-holesky.publicnode.com"],
-        chainId: 17000,
+        rpcUrls: [`https://${network}.infura.io/v3/${INFURA_API_KEY}`],
+        chainId: 11155111,
         web3Provider,
       });
 
@@ -168,8 +171,8 @@ export const StakingCard: React.FC<StakingCardProps> = ({
       console.log("Web3Provider:", web3Provider);
 
       const lidoSDK = new LidoSDK({
-        rpcUrls: ["https://ethereum-holesky.publicnode.com"],
-        chainId: 17000,
+        rpcUrls: [`https://${network}.infura.io/v3/${INFURA_API_KEY}`],
+        chainId: 11155111,
         web3Provider,
       });
 
@@ -224,8 +227,8 @@ export const StakingCard: React.FC<StakingCardProps> = ({
     try {
       await estimateGas("withdraw");
       const lidoSDK = new LidoSDK({
-        rpcUrls: ["https://ethereum-holesky.publicnode.com"],
-        chainId: 17000,
+        rpcUrls: [`https://${network}.infura.io/v3/${INFURA_API_KEY}`],
+        chainId: 11155111,
         web3Provider,
       });
 
@@ -329,7 +332,7 @@ export const StakingCard: React.FC<StakingCardProps> = ({
               <p className="text-sm">{status}</p>
               {txHash && (
                 <a
-                  href={`https://holesky.etherscan.io/tx/${txHash}`}
+                  href={`https://sepolia.etherscan.io/tx/${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-blue-500 hover:underline"
