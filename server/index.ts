@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 
 import userRoutes from './routes/userRoutes';
 import serverWalletRoutes from './routes/serverWalletRoutes'
-import { PrivyClient } from '@privy-io/server-auth';
+import savedWalletRoutes from './routes/savedWalletRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -17,18 +17,19 @@ dotenv.config();
 app.use(cors());
 app.use(bodyParser.json());
 
-console.log("Privy: ", process.env.PRIVY_APP_ID,process.env.PRIVY_SECRET!);
+
 
 
 
 app.get('/', (req: Request, res: Response) => {
-    res.json({ message: 'Hello, World!' });
+    res.json({ message: 'Plutus Backend' });
 });
 
 
 
 app.use('/api', userRoutes);
 app.use('/api', serverWalletRoutes);
+app.use('/api', savedWalletRoutes);
 
 mongoose.connect(process.env.MONGO_URI!).then(() => console.log('MongoDB connected'))
     .catch((err) => console.error('MongoDB connection error:', err));

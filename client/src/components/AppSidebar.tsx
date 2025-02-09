@@ -13,8 +13,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from "./ui/button";
 
 const sidebarItems = [
-    { icon: LayoutGrid, label: "Dashboard", href: "#" },
-    { icon: Ticket, label: "Wallet Watcher", href: "#" },
+    { icon: LayoutGrid, label: "Dashboard", href: "/profile" },
+    { icon: Ticket, label: "Wallet Watcher", href: "/watcher" },
     { icon: Wine, label: "Transactions", href: "#" },
     { icon: Users, label: "Chat Bot", href: "#" },
     { icon: Fish, label: "Activities", href: "#" },

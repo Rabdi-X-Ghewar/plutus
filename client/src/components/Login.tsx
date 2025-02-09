@@ -28,7 +28,7 @@ export default function Login() {
     const handleCreateSEmbeddedWallet = async () => {
         try {
             createWallet();
-            navigate("/");
+            navigate("/profile");
         } catch (error) {
             console.error("Error creating server wallet:", error);
         }
@@ -55,7 +55,7 @@ export default function Login() {
                             onClick={() => {
                                 linkWallet();
                                 setIsModalOpen(false);
-                                navigate("/");
+                                navigate("/profile");
                             }}
                             className="w-full"
                         >

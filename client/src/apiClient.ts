@@ -46,3 +46,36 @@ export const sendServerTransaction = async (email: string, to: string, valueInEt
         console.log('Error sending transaction:', error);
     }
 }
+
+
+export const getSavedWallets = async (email: string) => {
+    try {
+        const response = await fetch(`http://localhost:3001/api/saved-wallets/${email}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.log("Error fetching saved wallets:", error);
+    }
+}
+
+
+export const saveWallet = async (email: string, address: string, nickname: string) => {
+    try {
+        const response = await fetch('http://localhost:3001/api/saved-wallets', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, address, nickname }),
+        });
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.log("Error saving wallet:", error);
+    }
+}

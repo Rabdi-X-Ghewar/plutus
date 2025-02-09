@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import './App.css'
 
 import { usePrivy, useWallets } from '@privy-io/react-auth';
@@ -9,6 +9,7 @@ import { addUserToDatabase } from './apiClient';
 import { useEffect } from 'react';
 import WalletTracker from './pages/WalletTracker';
 import Profile from './pages/Profile';
+import SavedWalletsPage from './pages/SavedWalletsPage';
 
 function App() {
 
@@ -29,8 +30,10 @@ function App() {
         <Routes>
           {authenticated && (
             <>
+              <Route path="/" element={<Navigate to="/profile" replace />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/watcher" element={<WalletTracker />} />
+              <Route path="/send" element={<SavedWalletsPage />} />
             </>
           )}
         </Routes>
