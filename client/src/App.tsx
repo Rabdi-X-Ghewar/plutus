@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 import WalletTracker from './pages/WalletTracker';
 import Profile from './pages/Profile';
 import SavedWalletsPage from './pages/SavedWalletsPage';
+import TransactionPage from './pages/Transactions';
 
 function App() {
 
@@ -33,7 +34,8 @@ function App() {
               <Route path="/" element={<Navigate to="/profile" replace />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/watcher" element={<WalletTracker />} />
-              <Route path="/send" element={<SavedWalletsPage />} />
+              <Route path="/saved-wallets" element={<SavedWalletsPage />} />
+              <Route path="/transactions" element={<TransactionPage />} />
             </>
           )}
         </Routes>

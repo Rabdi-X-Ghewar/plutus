@@ -11,13 +11,14 @@ import {
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
+import { Link } from "react-router";
 
 const sidebarItems = [
     { icon: LayoutGrid, label: "Dashboard", href: "/profile" },
     { icon: Ticket, label: "Wallet Watcher", href: "/watcher" },
-    { icon: Wine, label: "Transactions", href: "#" },
-    { icon: Users, label: "Chat Bot", href: "#" },
-    { icon: Fish, label: "Activities", href: "#" },
+    { icon: Wine, label: "Transactions", href: "/transactions" },
+    { icon: Users, label: "Chat Bot", href: "/chat-bot" },
+    { icon: Fish, label: "Saved Wallets", href: "/saved-wallets" },
     { icon: Waves, label: "Bots", href: "#" },
     { icon: Trophy, label: "Rewards", href: "#" },
     { icon: Home, label: "Settings", href: "#" },
@@ -32,12 +33,12 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild size="lg">
-                            <a href="#" className="flex items-center gap-2">
+                            <Link to="/" className="flex items-center gap-2">
                                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                                     <span className="text-lg font-bold text-primary-foreground">P</span>
                                 </div>
                                 <span className="font-semibold text-xl">Pluto</span>
-                            </a>
+                            </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
@@ -47,10 +48,10 @@ export function AppSidebar() {
                     {sidebarItems.map((item) => (
                         <SidebarMenuItem key={item.label}>
                             <SidebarMenuButton asChild tooltip={item.label}>
-                                <a href={item.href}>
+                                <Link to={item.href}>
                                     <item.icon className="h-5 w-5" />
                                     <span>{item.label}</span>
-                                </a>
+                                </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     ))}
