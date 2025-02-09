@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ethers } from "ethers";
-import { useWallets } from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { Card } from "../components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Button } from "../components/ui/button";
@@ -9,6 +9,7 @@ import { Skeleton } from "../components/ui/skeleton";
 import { ScrollArea } from "../components/ui/scroll-area";
 import { WalletIcon, ArrowRightIcon, LampIcon as GasPumpIcon, ClockIcon, HashIcon } from "lucide-react";
 import { useToast } from "../hooks/use-toast";
+import { fetchWallet } from "../apiClient";
 
 // Define Transaction and ApiResponse interfaces
 export interface Transaction {
@@ -44,11 +45,28 @@ export interface ApiResponse {
 
 const TransactionPage = () => {
     const [selectedWallet, setSelectedWallet] = useState<string>("");
+    const [serverWallet, setServerWallet] = useState<string>("");
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const { wallets } = useWallets();
+    const { user } = usePrivy();
     const { toast } = useToast();
 
+    useEffect(() => {
+        const fetchServerWalletData = async () => {
+            try {
+                console.log("Helllio");
+                const wallet = await fetchWallet(user?.email?.address!);
+                console.log(wallet);
+                setServerWallet(wallet.wallet.address);
+            } catch (error) {
+                console.error("Error fetching server wallet balance:", error);
+            }
+        };
+
+        fetchServerWalletData();
+    }, []);
+    console.log("My server Walllet: ", serverWallet);
     const fetchTransactions = async () => {
         if (!selectedWallet) {
             toast({
@@ -115,11 +133,24 @@ const TransactionPage = () => {
                 <Card className="p-6">
                     <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                         <div className="flex-1 w-full">
+
                             <Select value={selectedWallet} onValueChange={setSelectedWallet}>
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select a wallet" />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    {serverWallet && (
+                                        <SelectItem key={serverWallet} value={serverWallet}>
+                                            <div className="flex items-center gap-2">
+                                                <WalletIcon className="h-4 w-4" />
+                                                <span>{truncateAddress(serverWallet)}</span>
+                                                <span className="text-muted-foreground text-sm">
+                                                    Server Wallet
+                                                </span>
+                                            </div>
+                                        </SelectItem>
+                                    )}
+
                                     {wallets.map((wallet) => (
                                         <SelectItem key={wallet.address} value={wallet.address}>
                                             <div className="flex items-center gap-2">
