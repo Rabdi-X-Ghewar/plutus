@@ -6,7 +6,7 @@ import {
   http,
   parseEther,
 } from "viem";
-// import { holesky } from "viem/chains";
+import { sepolia } from "viem/chains";
 import { getProvider, getUserAddress } from "./web3Provider.js";
 
 
@@ -35,7 +35,7 @@ const initializeLidoSDK = async () => {
   const provider = await getAndValidateProvider();
 
   const rpcProvider = createPublicClient({
-    chain: holesky,
+    chain: sepolia,
     transport: http(RPC_URL),
   });
 
