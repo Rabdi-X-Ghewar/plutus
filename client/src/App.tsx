@@ -4,7 +4,6 @@ import './App.css'
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import HomeBeforeLogin from './pages/HomeBeforeLogin';
 import HomeAfterLogin from './pages/HomeAfterLogin';
-import Home from './pages/Home';
 import { addUserToDatabase } from './apiClient';
 import { useEffect } from 'react';
 import WalletTracker from './pages/WalletTracker';

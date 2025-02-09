@@ -183,11 +183,11 @@ const SavedWalletsPage = () => {
                     to: destinationAddress as `0x${string}`,
                     value: parseEther(amount),
                 });
-
                 toast.success("Transaction successful");
                 setOpenDialog(false);
                 setDestinationAddress("");
                 setAmount("");
+                return hash;
             }
 
         } catch (error) {
