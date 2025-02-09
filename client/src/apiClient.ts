@@ -1,6 +1,8 @@
+const API_URL = 'https://plutus-server.onrender.com'
+
 export const addUserToDatabase = async (user: any) => {
     try {
-        const response = await fetch('http://localhost:3001/api/add-user', {
+        const response = await fetch(`${API_URL}/api/add-user`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -17,7 +19,7 @@ export const addUserToDatabase = async (user: any) => {
 
 export const fetchWallet = async (email: string) => {
     try {
-        const response = await fetch(`http://localhost:3001/api/fetch-wallet/${email}/`, {
+        const response = await fetch(`${API_URL}/api/fetch-wallet/${email}/`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -33,7 +35,7 @@ export const fetchWallet = async (email: string) => {
 
 export const sendServerTransaction = async (email: string, to: string, valueInEth: string) => {
     try {
-        const response = await fetch('http://localhost:3001/api/send-transaction', {
+        const response = await fetch(`${API_URL}/api/send-transaction`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -50,7 +52,7 @@ export const sendServerTransaction = async (email: string, to: string, valueInEt
 
 export const getSavedWallets = async (email: string) => {
     try {
-        const response = await fetch(`http://localhost:3001/api/saved-wallets/${email}`, {
+        const response = await fetch(`${API_URL}/api/saved-wallets/${email}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -66,7 +68,7 @@ export const getSavedWallets = async (email: string) => {
 
 export const saveWallet = async (email: string, address: string, nickname: string) => {
     try {
-        const response = await fetch('http://localhost:3001/api/saved-wallets', {
+        const response = await fetch(`${API_URL}/api/saved-wallets`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
