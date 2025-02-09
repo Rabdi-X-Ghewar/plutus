@@ -33,11 +33,11 @@ Plutus is a next-generation decentralized finance (DeFi) protocol designed to em
 
 ### 1. **Privy**
 
-* **Email Authentication**: Secure login using `@privy/react-auth` library.
-* **Wallet Connection**: Link wallets seamlessly using the `linkWallet` function from the `usePrivy` hook.
-* **Server Wallet Creation**: Create server-side wallets using the Privy TypeScript SDK (`@privy/server-auth`).
-* **Transaction Management**: Send transactions securely through server wallets.
-* **Policy Engine**: Define and enforce transaction rules via API calls to `https://api.privy.io/v1/policies`.
+* **Email Authentication**: Secure login using `@privy/react-auth` library. You can find the login logic in [this file](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/client/src/components/Login.tsx)
+* **Wallet Connection**: Link wallets seamlessly using the `linkWallet` function from the `usePrivy` hook. It has been implemented in the [Navbar](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/client/src/components/MainNav.tsx).
+* **Server Wallet Creation**: Create server-side wallets using the Privy TypeScript SDK (`@privy/server-auth`). A [user interface](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/client/src/pages/Profile.tsx) is provided for server wallets through dedicated [server wallet routes](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/server/routes/serverWalletRoutes.ts), enabling users to seamlessly access and utilize the [full functionality](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/server/services/walletService.ts) of server wallets.
+* **Transaction Management**: Users can send transactions securely through server wallets.
+* **Policy Engine**: Define and enforce transaction rules via API calls to `https://api.privy.io/v1/policies`. The policy engine are created with [this](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/server/services/policyService.ts) logic and assigned to server wallets on their [creation](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/server/services/walletService.ts#L49).
 
 ### 2. **Coinbase Agent Kit**
 
