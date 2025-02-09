@@ -1,25 +1,50 @@
 import { DynamicStructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
-import { ethers } from "ethers";
 import { LidoSDK, LidoSDKCore } from "@lidofinance/lido-ethereum-sdk";
-import { createPublicClient, createWalletClient, custom, http, parseEther } from "viem";
+import {
+  createPublicClient,
+  http,
+  parseEther,
+} from "viem";
 import { holesky } from "viem/chains";
-import { getProvider } from "./web3Provider.js";
+import { getProvider, getUserAddress } from "./web3Provider.js";
 
+const RPC_URL = "https://holesky.drpc.org";
 
-const rpcProvider = createPublicClient({
-  chain: holesky,
-  transport: http("https://holesky.drpc.org"),
-});
+// Helper function that can be used anywhere
+export const getAndValidateAddress = async () => {
+  const address = await getUserAddress();
+  if (!address) {
+    throw new Error("User address not found");
+  }
+  return address;
+};
+export const getAndValidateProvider = async () => {
+  const provider = await getProvider();
+  if (!provider) {
+    throw new Error("Web3 provider not found");
+  }
+  return provider;
+};
 
-// Initialize the LidoSDK with the RPC and wallet client.
-// Adjust chainId as needed; here it is set to 17000 which might correspond to your test network.
-const lidoSDK = new LidoSDK({
-  chainId: 17000,
-  rpcProvider, // Public provider for reading data
-  // walletProvider:getProvider(), // Wallet provider for sending transactions
-});
+// Initialize providers and SDK
+const initializeLidoSDK = async () => {
+  const provider = await getAndValidateProvider();
 
+  const rpcProvider = createPublicClient({
+    chain: holesky,
+    transport: http(RPC_URL),
+  });
+
+  return new LidoSDK({
+    chainId: 17000,
+    rpcProvider,
+    walletProvider: provider,
+    rpcUrl: RPC_URL,
+  });
+};
+
+let lidoSDK = null;
 
 class LidoStakingTool extends DynamicStructuredTool {
   constructor() {
@@ -30,7 +55,8 @@ class LidoStakingTool extends DynamicStructuredTool {
         - getBalances: Fetch ETH, stETH, and wstETH balances.
         - withdrawStETH: Request withdrawal of stETH.
         - wrapETH: Convert ETH to wstETH.
-        - unwrapETH: Convert wstETH back to ETH.`,
+        - unwrapETH: Convert wstETH back to ETH.
+          userAddress is already set no need to provide only for staking you can ask referral addres that is optional.`,
       schema: z.object({
         operation: z.enum([
           "stakeETH",
@@ -40,37 +66,52 @@ class LidoStakingTool extends DynamicStructuredTool {
           "unwrapETH",
         ]),
         params: z.object({
-          address: z.string(), // Required user address
+          referralAddress: z.string(), // Required user address
           amount: z.number().optional(),
         }),
       }),
     });
+
+    // Initialize SDK in constructor
+    this.initialize();
+  }
+
+  async initialize() {
+    if (!lidoSDK) {
+      lidoSDK = await initializeLidoSDK();
+    }
   }
 
   async _call(args) {
+    // Ensure SDK is initialized
+    if (!lidoSDK) {
+      await this.initialize();
+    }
+
     try {
       const { operation, params } = args;
-      const { address, amount } = params;
+      const { amount } = params;
+      // Using the helper function
 
       switch (operation) {
         case "stakeETH":
           if (!amount) throw new Error("Amount is required for staking");
-          return await this.stakeETH(amount, address);
+          return await this.stakeETH(amount, params.referralAddress);
 
         case "getBalances":
-          return await this.getBalances(address);
+          return await this.getBalances();
 
         case "withdrawStETH":
           if (!amount) throw new Error("Amount is required for withdrawal");
-          return await this.withdrawStETH(amount, address);
+          return await this.withdrawStETH(amount);
 
         case "wrapETH":
           if (!amount) throw new Error("Amount is required for wrapping");
-          return await this.wrapETH(amount, address);
+          return await this.wrapETH(amount);
 
         case "unwrapETH":
           if (!amount) throw new Error("Amount is required for unwrapping");
-          return await this.unwrapETH(amount, address);
+          return await this.unwrapETH(amount);
 
         default:
           throw new Error(`Unknown operation: ${operation}`);
@@ -84,14 +125,15 @@ class LidoStakingTool extends DynamicStructuredTool {
     }
   }
 
-  async stakeETH(amount, userAddress) {
+  async stakeETH(amount, referralAddress) {
+    const userAddress = await getAndValidateAddress(); // Using the helper function
     const value = parseEther(amount.toString());
     // Contracts
     const addressStETH = await lidoSDK.stake.contractAddressStETH();
     const contractStETH = await lidoSDK.stake.getContractStETH();
     const stakeTx = await lidoSDK.stake.stakeEth({
       value,
-      referralAddress: userAddress,
+      referralAddress: referralAddress,
     });
     return {
       addressStETH: addressStETH,
@@ -100,18 +142,12 @@ class LidoStakingTool extends DynamicStructuredTool {
     };
   }
 
-  async getBalances(userAddress) {
-    if (!userAddress || typeof userAddress !== "string") {
-      throw new Error("Invalid user address provided.");
-    }
-    console.log("Fetching balances for address:", userAddress);
-    // Ensure the user address is a valid Ethereum address.
-    // const formattedAddress = ethers.utils.getAddress(userAddress);
+  async getBalances() {
     try {
-      // Fetch ETH balance using RPC provider
-      const ethBalance = await lidoSDK.core.balanceETH(userAddress);
-      // Get stETH and wstETH contracts via the SDK
+      const userAddress = await getAndValidateAddress(); // Using the helper function
+      console.log("Fetching balances for address:", userAddress);
 
+      const ethBalance = await lidoSDK.core.balanceETH(userAddress);
       return {
         ethBalance: ethBalance.toString(),
       };
@@ -121,7 +157,7 @@ class LidoStakingTool extends DynamicStructuredTool {
     }
   }
 
-  async withdrawStETH(amount, userAddress) {
+  async withdrawStETH(amount) {
     const amountInWei = parseEther(amount.toString());
     const addressWithdrawalQueue =
       await lidoSDK.withdraw.contract.contractAddressWithdrawalQueue();
@@ -130,7 +166,7 @@ class LidoStakingTool extends DynamicStructuredTool {
     const requestTx = await lidoSDK.withdraw.requestWithdrawalWithPermit({
       amount: amountInWei,
       token: "stETH",
-      userAddress, // Ensure we pass userAddress correctly
+      userAddress: await getAndValidateAddress(), // Ensure we pass userAddress correctly
     });
     return {
       addressWithdrawalQueue: addressWithdrawalQueue,
@@ -139,20 +175,20 @@ class LidoStakingTool extends DynamicStructuredTool {
     };
   }
 
-  async wrapETH(amount, userAddress) {
-    const value = ethers.utils.parseEther(amount.toString());
+  async wrapETH(amount) {
+    const value = parseEther(amount.toString());
     const wrapTx = await lidoSDK.wrap.wrapEth({
       value,
-      account: userAddress,
+      account: await getAndValidateAddress(),
     });
     return { transaction: wrapTx };
   }
 
-  async unwrapETH(amount, userAddress) {
-    const amountInWei = ethers.utils.parseEther(amount.toString());
+  async unwrapETH(amount) {
+    const amountInWei = parseEther(amount.toString());
     const unwrapTx = await lidoSDK.wrap.unwrapEth({
       amount: amountInWei,
-      account: userAddress,
+      account: await getAndValidateAddress(),
     });
     return { transaction: unwrapTx };
   }
@@ -160,4 +196,3 @@ class LidoStakingTool extends DynamicStructuredTool {
 
 const lidoStakingTool = new LidoStakingTool();
 export default lidoStakingTool;
-

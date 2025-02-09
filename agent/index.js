@@ -1,8 +1,9 @@
 import dotenv from "dotenv";
 import express from "express";
 import http from "http";
+import cors from "cors";
 import validateEnvironment from "./evnValidation.js";
-import { setProvider } from "./tools/web3Provider.js";
+import { setProvider,setUserAddress } from "./tools/web3Provider.js";
 import { startWsServer } from "../agent/wsServer.js";
 import { PrivyClient } from "@privy-io/server-auth";
 dotenv.config();
@@ -13,40 +14,31 @@ const privy = new PrivyClient(
 );
 
 const app = express();
+app.use(cors());
 // Add this debug endpoint
 const server = http.createServer(app);
 // Start WebSocket server
 startWsServer(server);
-// API endpoint to receive wallet address
-app.post("/api/set-wallet-address", async (req, res) => {
-  const { walletAddress } = req.body;
 
-  if (!walletAddress) {
-    return res.status(400).json({ error: "Wallet address is required." });
+
+app.post("/api/set-provider", express.json(), async (req, res) => {
+  const { provider,address } = req.body;
+
+  if (!provider) {
+    return res.status(400).json({ error: "Provider is required." });
   }
 
   try {
-    // Use Privy to retrieve the user by wallet address
-    const user = await privy.getUserByWalletAddress(walletAddress);
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found." });
-    }
-
-    // Retrieve the Web3 provider for the wallet
-    const provider = user.wallet.getEthereumProvider();
     setProvider(provider);
-    // Optionally, store the provider or use it with the Lido SDK
-    console.log("Web3 Provider Retrieved:", provider);
-
-    // Respond with success
+    setUserAddress(address);
+    
     res.status(200).json({
       success: true,
-      message: "Web3 provider retrieved successfully.",
+      message: "Web3 provider set successfully.",
     });
   } catch (error) {
-    console.error("Error processing wallet ID:", error);
-    res.status(500).json({ error: "Failed to process wallet ID." });
+    console.error("Error setting provider:", error);
+    res.status(500).json({ error: "Failed to set provider." });
   }
 });
 

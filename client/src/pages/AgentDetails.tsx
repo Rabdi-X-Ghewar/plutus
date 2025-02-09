@@ -19,8 +19,17 @@ import { Message } from "../types/AgentInterfaces";
 import { StakingCard } from "../components/ui/StakingCard";
 import { LidoSDKCore } from "@lidofinance/lido-ethereum-sdk";
 
+const PLUTUS_ASCII = `
+██████╗ ██╗     ██╗   ██╗████████╗██╗   ██╗███████╗
+██╔══██╗██║     ██║   ██║╚══██╔══╝██║   ██║██╔════╝
+██████╔╝██║     ██║   ██║   ██║   ██║   ██║███████╗
+██╔═══╝ ██║     ██║   ██║   ██║   ██║   ██║╚════██║
+██║     ███████╗╚██████╔╝   ██║   ╚██████╔╝███████║
+╚═╝     ╚══════╝ ╚═════╝    ╚═╝    ╚═════╝ ╚══════╝
+`;
+
 const AgentDetails: React.FC = () => {
-  const { login, authenticated, user } = usePrivy();
+  const { authenticated, user } = usePrivy();
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentCard, setCurrentCard] = useState<any>(null);
   const [input, setInput] = useState<string>("");
@@ -28,16 +37,51 @@ const AgentDetails: React.FC = () => {
   const ws = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { wallets } = useWallets();
+  const chainId = 17000;
   const embeddedWallet =
     wallets.find((wallet) => wallet.walletClientType === "privy") || wallets[0];
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+  useEffect(() => {
+    const setProvider = async () => {
+      if (embeddedWallet) {
+        try {
+          const response = await fetch(
+            "http://localhost:3000/api/set-provider",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                provider: LidoSDKCore.createWeb3Provider(
+                  chainId,
+                  window.ethereum
+                ),
+                address: user?.wallet?.address,
+              }),
+            }
+          );
 
+          if (!response.ok) {
+            throw new Error("Failed to set provider");
+          }
+
+          console.log("Provider set successfully");
+        } catch (error) {
+          console.error("Error setting provider:", error);
+        }
+      }
+    };
+
+    setProvider();
+  }, [embeddedWallet]);
   useEffect(() => {
     // Connect to WebSocket
     ws.current = new WebSocket("ws://localhost:3000");
+
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -77,7 +121,7 @@ const AgentDetails: React.FC = () => {
                   type: "asset",
                 })),
               });
-            } else if (toolData.ok.currentPage === 1) {
+            } else if (toolData.ok.currentPage >= 1) {
               setCurrentCard({
                 type: "agents_list",
                 items: toolData.ok.data.map((agent: any) => ({
@@ -174,48 +218,57 @@ const AgentDetails: React.FC = () => {
       );
     }
   };
-  return (
-    <div className="flex w-full h-screen bg-gray-50">
-      {authenticated ? (
-        <div>{user?.wallet?.address}</div>
-      ) : (
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg m-4"
-          onClick={login}
-        >
-          Connect Wallet
-        </button>
-      )}
 
-      {/* Chat Interface */}
-      <div className="w-[570px] border-r bg-white flex flex-col h-full">
-        <div className="flex h-16 items-center gap-2 border-b px-4">
-          <Button variant="ghost" size="icon" className="shrink-0">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex items-center gap-2 text-lg font-semibold">
-            AI Assistant
+  const renderMessage = (msg: Message) => {
+    if (msg.type === "user") {
+      return (
+        <div className="font-mono text-white/90">
+          <span className="text-[#50fa7b]">user@plutus</span>
+          <span className="text-white/70">:~$</span>
+          <span className="ml-2">{msg.content}</span>
+        </div>
+      );
+    } else {
+      return (
+        <div className="font-mono">
+          <span className="text-[#bd93f9]">plutus@ai</span>
+          <span className="text-white/70">:~$</span>
+          <div className="mt-1 text-white/90 pl-4">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              className="whitespace-pre-wrap"
+            >
+              {msg.content}
+            </ReactMarkdown>
           </div>
         </div>
-        <ScrollArea className="flex-1 p-4">
-          <div className="flex flex-col gap-2">
+      );
+    }
+  };
+
+  return (
+    <div className="flex w-full h-screen bg-black">
+      {/* Chat Interface */}
+      <div className="w-[570px] border-r border-white/20 bg-black flex flex-col h-full shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+        <div className="flex flex-col">
+          <pre
+            className="text-[#50fa7b] p-4 text-xs font-mono whitespace-pre select-none"
+            style={{ textShadow: "0 0 5px rgba(80, 250, 123, 0.5)" }}
+          >
+            {PLUTUS_ASCII}
+          </pre>
+
+          <div className="text-white/70 px-4 pb-2 text-sm font-mono border-b border-white/20">
+            Usage: Type your message to interact with the AI Assistant
+          </div>
+        </div>
+
+        <ScrollArea className="flex-1 p-4 font-mono">
+          <div className="flex flex-col gap-4">
             {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`rounded-3xl p-3 ${
-                  msg.type === "user"
-                    ? "ml-auto bg-blue-500 text-white"
-                    : "bg-gray-100 text-gray-800"
-                } max-w-[80%]`}
-              >
-                {msg.type === "ai" ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {msg.content}
-                  </ReactMarkdown>
-                ) : (
-                  <p className="text-sm">{msg.content}</p>
-                )}
-                <span className="text-xs opacity-70 mt-1 block">
+              <div key={index} className="terminal-line">
+                {renderMessage(msg)}
+                <span className="text-xs text-white/30 mt-1 block">
                   {formatTimestamp(msg.timestamp)}
                 </span>
               </div>
@@ -223,19 +276,24 @@ const AgentDetails: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
-        <div className="border-t bg-white p-4">
-          <div className="flex gap-2">
+
+        <div className="border-t border-white/20 bg-black p-4">
+          <div className="flex items-center gap-2 font-mono">
+            <span className="text-[#50fa7b]">user@plutus</span>
+            <span className="text-white/70">:~$</span>
             <Input
-              placeholder="Type your message..."
+              placeholder=""
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
               disabled={isLoading}
+              className="flex-1 bg-transparent border-none text-white placeholder:text-white/50 focus:outline-none focus:ring-0 font-mono"
             />
             <Button
               onClick={handleSendMessage}
               size="icon"
               disabled={isLoading}
+              className="bg-transparent hover:bg-white/10 text-white"
             >
               <Send className="h-4 w-4" />
             </Button>
@@ -243,17 +301,37 @@ const AgentDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Card Display Area */}
-      <div className="flex-1 p-6 overflow-y-auto">{renderCard()}</div>
-      {authenticated && embeddedWallet ? (
-        <StakingCard
-          web3Provider={LidoSDKCore.createWeb3Provider(17000, window.ethereum)}
-          account={user?.wallet?.address || ""}
-        />
+      {/* Right Side - Explore and Cards */}
+      <div className="flex-1 flex flex-col gap-6 p-6 bg-black">
+        <div className="flex-1 overflow-y-auto">
+          <div
+            className="text-xl font-semibold text-white mb-4"
+            style={{ textShadow: "0 0 10px rgba(255,255,255,0.5)" }}
+          >
+            Explore
+          </div>
+          <div className="space-y-4">
+            {renderCard()}
 
-      ) : (
-        <ErrorCard message="Please connect your wallet to stake" />
-      )}
+            {/* Staking Card moved inside explore section */}
+            {authenticated && embeddedWallet && (
+              <div className="border border-white/20 rounded-lg bg-black shadow-[0_0_10px_rgba(255,255,255,0.3)] p-4 mt-6">
+                <div className="text-lg font-semibold text-white mb-4">
+                  Staking
+                </div>
+                <StakingCard
+                  web3Provider={LidoSDKCore.createWeb3Provider(
+                    chainId,
+                    window.ethereum
+                  )}
+                  account={user?.wallet?.address || ""}
+
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {
@@ -40,41 +40,43 @@ export const StakingCard: React.FC<StakingCardProps> = ({
   const [balance, setBalance] = useState<string>("0");
   const [gasEstimate, setGasEstimate] = useState<string>("");
   const [stakingLimit, setStakingLimit] = useState<string>("0");
+  const [stakedBalance, setStakedBalance] = useState<string>("0");
 
-  // Fetch balance on component mount and when account changes
+  // Initialize LidoSDK once using useMemo
+  const lidoSDK = useMemo(() => {
+    if (!web3Provider) return null;
+    return new LidoSDK({
+      rpcUrls: ["https://ethereum-holesky.publicnode.com"],
+      chainId: 17000,
+      web3Provider,
+    });
+  }, [web3Provider]);
+
   useEffect(() => {
-    const fetchBalance = async () => {
-      if (!web3Provider || !account) return;
+    const fetchBalances = async () => {
+      if (!lidoSDK || !account) return;
 
       try {
-        const lidoSDK = new LidoSDK({
-          rpcUrls: ["https://ethereum-holesky.publicnode.com"],
-          chainId: 17000,
-          web3Provider,
-        });
+        const [balanceETH, balanceShares] = await Promise.all([
+          lidoSDK.core.balanceETH(account as `0x${string}`),
+          lidoSDK.shares.balance(account as `0x${string}`),
+        ]);
 
-        const balanceETH = await lidoSDK.core.balanceETH(
-          account as `0x${string}`
-        );
         setBalance(formatEther(balanceETH));
+        setStakedBalance(formatEther(balanceShares));
       } catch (error) {
-        console.error("Error fetching balance:", error);
+        console.error("Error fetching balances:", error);
       }
     };
 
-    fetchBalance();
-  }, [web3Provider, account]);
+    fetchBalances();
+  }, [lidoSDK, account]);
 
   useEffect(() => {
     const fetchStakingLimit = async () => {
-      if (!web3Provider) return;
+      if (!lidoSDK) return;
 
       try {
-        const lidoSDK = new LidoSDK({
-          rpcUrls: ["https://ethereum-holesky.publicnode.com"],
-          chainId: 17000,
-          web3Provider,
-        });
         const limit = await lidoSDK.stake.getStakeLimitInfo();
         setStakingLimit(formatEther(limit.currentStakeLimit));
       } catch (error) {
@@ -83,18 +85,12 @@ export const StakingCard: React.FC<StakingCardProps> = ({
     };
 
     fetchStakingLimit();
-  }, [web3Provider]);
+  }, [lidoSDK]);
 
   const estimateGas = async (type: "stake" | "withdraw") => {
-    if (!amount || !web3Provider) return;
+    if (!amount || !lidoSDK || !account) return;
 
     try {
-      const lidoSDK = new LidoSDK({
-        rpcUrls: ["https://ethereum-holesky.publicnode.com"],
-        chainId: 17000,
-        web3Provider,
-      });
-
       const value = parseEther(amount.toString());
 
       let estimate;
@@ -105,25 +101,24 @@ export const StakingCard: React.FC<StakingCardProps> = ({
         });
       } else {
         estimate =
-          await lidoSDK.withdraw.request.requestWithdrawalWithPermitEstimateGas(
+          await lidoSDK.withdraw.request.requestWithdrawalEstimateGas(
             {
               amount: value,
               token: "stETH",
               account: account as `0x${string}`,
-              permit: {
-                deadline: BigInt(Math.floor(Date.now() / 1000) + 3600),
-                v: 0,
-                r: "0x0000000000000000000000000000000000000000000000000000000000000000",
-                s: "0x0000000000000000000000000000000000000000000000000000000000000000",
-                value: BigInt(value.toString()),
-              },
             }
           );
       }
 
-      setGasEstimate(formatEther(estimate));
+      const estimateInEth = formatEther(estimate);
+      setGasEstimate(estimateInEth);
+      setStatus(`Estimated gas cost: ${estimateInEth} ETH`);
     } catch (error) {
       console.error("Error estimating gas:", error);
+      setStatus(
+        "Error calculating gas estimate. Make sure you have sufficient stETH balance."
+      );
+      setGasEstimate("");
     }
   };
 
@@ -158,22 +153,12 @@ export const StakingCard: React.FC<StakingCardProps> = ({
   };
 
   const handleStake = async () => {
-    if (!amount || !web3Provider) return;
+    if (!amount || !lidoSDK || !account) return;
 
     setIsLoading(true);
     setStatus("Initializing stake...");
 
     try {
-      // Log provider info for debugging
-      console.log("Web3Provider:", web3Provider);
-
-      const lidoSDK = new LidoSDK({
-        rpcUrls: ["https://ethereum-holesky.publicnode.com"],
-        chainId: 17000,
-        web3Provider,
-      });
-
-      // Validate amount
       const amountWei = parseEther(amount);
       const limitWei = parseEther(stakingLimit);
 
@@ -184,7 +169,6 @@ export const StakingCard: React.FC<StakingCardProps> = ({
         return;
       }
 
-      // Log transaction details
       console.log("Staking amount:", amount, "ETH");
       console.log("Account:", account);
 
@@ -216,26 +200,19 @@ export const StakingCard: React.FC<StakingCardProps> = ({
   };
 
   const handleWithdraw = async () => {
-    if (!amount || !web3Provider) return;
+    if (!amount || !lidoSDK || !account) return;
 
     setIsWithdrawing(true);
     setStatus("Initializing withdrawal...");
 
     try {
       await estimateGas("withdraw");
-      const lidoSDK = new LidoSDK({
-        rpcUrls: ["https://ethereum-holesky.publicnode.com"],
-        chainId: 17000,
-        web3Provider,
-      });
-
       const withdrawTx =
         await lidoSDK.withdraw.request.requestWithdrawalWithPermit({
           amount: parseEther(amount.toString()),
           token: "stETH",
           callback: handleCallback as any,
           account: account as `0x${string}`,
-          deadline: BigInt(Math.floor(Date.now() / 1000) + 3600), // 1 hour from now
         });
 
       setStatus(
@@ -267,27 +244,47 @@ export const StakingCard: React.FC<StakingCardProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md mx-auto bg-black border border-[#50fa7b]/30 shadow-[0_0_10px_rgba(80,250,123,0.2)]">
       <CardHeader>
-        <CardTitle>Stake/Withdraw ETH with Lido</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-[#50fa7b] font-mono">
+          Stake/Withdraw ETH with Lido
+        </CardTitle>
+        <CardDescription className="text-white/70 font-mono">
           Stake your ETH to earn staking rewards or withdraw your staked ETH
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <label className="text-sm font-medium">Amount (ETH)</label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <span className="text-sm text-gray-500">
-                    Balance: {balance} ETH
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>Your ETH Balance</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <label className="text-sm font-mono text-[#50fa7b]">
+              Amount (ETH)
+            </label>
+            <div className="flex gap-4">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <span className="text-sm text-white/70 font-mono">
+                      Balance: {balance} ETH
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black border border-[#50fa7b]/30 text-white">
+                    Your ETH Balance
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <span className="text-sm text-white/70 font-mono">
+                      Staked: {stakedBalance} stETH
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black border border-[#50fa7b]/30 text-white">
+                    Your Staked ETH Balance
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
           <Input
             type="number"
@@ -297,42 +294,43 @@ export const StakingCard: React.FC<StakingCardProps> = ({
             disabled={isLoading || isWithdrawing}
             min="0"
             step="0.01"
+            className="bg-black border-[#50fa7b]/30 text-white font-mono placeholder:text-white/30 focus:border-[#50fa7b] focus:ring-[#50fa7b]/20"
           />
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-white/70 font-mono">
             Daily Staking Limit: {stakingLimit} ETH
           </div>
           <div className="space-y-2">
             <Button
               onClick={() => handleEstimateGas("stake")}
-              variant="secondary"
+              variant="outline"
               disabled={!amount}
-              className="w-full mb-2"
+              className="w-full mb-2 border-[#50fa7b]/30 text-[#50fa7b] hover:bg-[#50fa7b]/10 hover:text-[#50fa7b] font-mono bg-transparent"
             >
               Estimate Stake Gas
             </Button>
             <Button
               onClick={() => handleEstimateGas("withdraw")}
-              variant="secondary"
+              variant="outline"
               disabled={!amount}
-              className="w-full"
+              className="w-full border-[#50fa7b]/30 text-[#50fa7b] hover:bg-[#50fa7b]/10 hover:text-[#50fa7b] font-mono bg-transparent"
             >
               Estimate Withdraw Gas
             </Button>
           </div>
           {gasEstimate && (
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-white/70 font-mono">
               Estimated Gas: {gasEstimate} ETH
             </div>
           )}
           {status && (
-            <div className="p-3 rounded-lg bg-gray-100">
-              <p className="text-sm">{status}</p>
+            <div className="p-3 rounded-lg bg-black border border-[#50fa7b]/30">
+              <p className="text-sm text-white/90 font-mono">{status}</p>
               {txHash && (
                 <a
                   href={`https://holesky.etherscan.io/tx/${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-500 hover:underline"
+                  className="text-xs text-[#50fa7b] hover:underline font-mono mt-2 block"
                 >
                   View on Etherscan
                 </a>
@@ -345,7 +343,7 @@ export const StakingCard: React.FC<StakingCardProps> = ({
         <Button
           onClick={handleStake}
           disabled={isLoading || isWithdrawing || !amount}
-          className="flex-1"
+          className="flex-1 bg-[#50fa7b]/10 text-[#50fa7b] border border-[#50fa7b]/30 hover:bg-[#50fa7b]/20 font-mono"
         >
           {isLoading ? "Staking..." : "Stake ETH"}
         </Button>
@@ -353,7 +351,7 @@ export const StakingCard: React.FC<StakingCardProps> = ({
           onClick={handleWithdraw}
           disabled={isLoading || isWithdrawing || !amount}
           variant="outline"
-          className="flex-1"
+          className="flex-1 border-[#50fa7b]/30 text-[#50fa7b] hover:bg-[#50fa7b]/10 font-mono bg-transparent"
         >
           {isWithdrawing ? "Withdrawing..." : "Withdraw ETH"}
         </Button>

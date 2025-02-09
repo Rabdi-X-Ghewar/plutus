@@ -401,8 +401,4 @@ class StakingRewardsTool extends DynamicStructuredTool {
 // Create and export a single instance
 const stakingRewardsTool = new StakingRewardsTool();
 export default stakingRewardsTool;
-// const result = await stakingRewardsTool._call({
-//   operation: "getTopAssets",
-// });
-// console.log(result);
 

@@ -42,3 +42,27 @@ export interface EthereumMetrics {
   }>;
   type: "metrics";
 }
+
+export interface LiquidStakingOption {
+  provider: string;
+  logo: string;
+  isVerified: boolean;
+  rewardRate: string;
+  commission: string;
+  stakingShare: string;
+  type: "liquid_staking_option";
+}
+
+export interface Validator {
+  address: string;
+  rewardRate: string;
+  commission: string;
+  totalStaked: string;
+}
+
+export interface ValidatorMetrics {
+  asset: string;
+  rewardRate: string;
+  validators: Validator[];
+  type: "validator_metrics";
+}

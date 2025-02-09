@@ -4,12 +4,13 @@ import './App.css'
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import HomeBeforeLogin from './pages/HomeBeforeLogin';
 import HomeAfterLogin from './pages/HomeAfterLogin';
-import Home from './pages/Home';
+// import Home from './pages/Home';
 import { addUserToDatabase } from './apiClient';
 import { useEffect } from 'react';
 import WalletTracker from './pages/WalletTracker';
 import Profile from './pages/Profile';
 import SavedWalletsPage from './pages/SavedWalletsPage';
+import AgentDetails from './pages/AgentDetails';
 
 function App() {
 
@@ -34,6 +35,7 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/watcher" element={<WalletTracker />} />
               <Route path="/send" element={<SavedWalletsPage />} />
+              <Route path="/agent" element={<AgentDetails/>}/>
             </>
           )}
         </Routes>
