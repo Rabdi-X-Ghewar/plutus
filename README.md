@@ -1,50 +1,130 @@
-# React + TypeScript + Vite
+# Plutus - DeFi Protocol
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Plutus is a next-generation decentralized finance (DeFi) protocol designed to empower users with advanced wallet management, tracking, and AI-driven investment decision-making capabilities. The platform integrates cutting-edge technologies to provide a seamless experience for managing wallets, staking assets, and leveraging AI agents to assess market trends and optimize investment strategies.
 
-Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+### 1. **Wallet Manager**
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+* Manage multiple wallets effortlessly.
+* Track wallet balances, transactions, and activity in real-time.
+* Secure authentication via email using **Privy**.
 
-- Configure the top-level `parserOptions` property like this:
+### 2. **AI Agent for Investment Decisions**
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+* Analyze market sentiment and mind share through Twitter impressions and metrics.
+* Evaluate market cap data to make informed investment decisions.
+* Provide personalized staking recommendations powered by **OpenRouter API** and **Hyperbolic API**.
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### 3. **Staking**
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+* Stake assets directly through the dApp using **Coinbase Agent Kit**.
+* Fetch reward rates from **Staking_Rewards_API**.
+* Monitor staking performance and rewards in real-time.
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+### 4. **Chatbot Integration**
+
+* Interactive chatbot powered by **OpenRouter API** for staking recommendations and wallet insights.
+* Access on-chain data via **Hyperbolic API** for accurate and up-to-date information.
+
+
+## Technology Stack
+
+### 1. **Privy**
+
+* **Email Authentication**: Secure login using `@privy/react-auth` library.
+* **Wallet Connection**: Link wallets seamlessly using the `linkWallet` function from the `usePrivy` hook.
+* **Server Wallet Creation**: Create server-side wallets using the Privy TypeScript SDK (`@privy/server-auth`).
+* **Transaction Management**: Send transactions securely through server wallets.
+* **Policy Engine**: Define and enforce transaction rules via API calls to `https://api.privy.io/v1/policies`.
+
+### 2. **Coinbase Agent Kit**
+
+* **Lido Staking**: Enable staking through the Coinbase Agent Kit.
+* **Automated Transactions**: Execute automated transactions via Coinbase Wallet.
+* **Balance Fetching**: Retrieve wallet balances using the Coinbase Agent Kit.
+
+### 3. **Cookie API**
+
+* Fetch Twitter data through Twitter agents to analyze social media trends and sentiment.
+
+### 4. **Staking_Rewards_API**
+
+* Retrieve reward rates for various staking protocols to help users maximize their returns.
+
+### 5. **OpenRouter API**
+
+* Power the chatbot with OpenAI-like capabilities for intelligent staking recommendations and wallet insights.
+
+### 6. **Hyperbolic API**
+
+* Access on-chain data powered by Eigen Layer for accurate and reliable blockchain analytics.
+
+
+## Getting Started
+
+### Prerequisites
+
+* Node.js (v16 or higher)
+* Yarn or npm
+* API keys for:
+  * Privy
+  * Coinbase Agent Kit
+  * Cookie API
+  * Staking_Rewards_API
+  * OpenRouter API
+  * Hyperbolic API
+
+### Installation
+
+* Clone the repository:
+
+  ```bash
+  git clone https://github.com/your-repo/plutus.git
+  cd plutus
+  ```
+* Install dependencies:
+
+  ```bash
+  npm install or yarn install
+  ```
+* Start the development server:
+
+  ```bash
+  npm run dev or yarn dev
+  ```
+
+## Usage
+
+### Wallet Management
+
+* Use the **Privy** integration to authenticate and connect your wallet.
+* Track wallet activity and balances in real-time.
+
+### Staking
+
+* Navigate to the staking section to stake assets.
+* View reward rates fetched from **Staking_Rewards_API** .
+
+### AI-Powered Insights
+
+* Interact with the chatbot to receive personalized staking recommendations.
+* Leverage AI analysis of Twitter impressions and market cap data for investment decisions.
+
+
+## Contact
+
+For questions or support, please reach out to us at:
+
+* Email: __daiwikmahesh@gmail.com__
+* Twitter: __[@](https://twitter.com/PlutusProtocol)daiwik_mh__
+
+  \
+* Email: devbulchandani876@gmail.com
+* Twitter: @DB9808
+
+  \
+   \n 
+
+

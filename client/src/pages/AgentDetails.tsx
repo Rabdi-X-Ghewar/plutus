@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { ScrollArea } from "../components/ui/scroll-area";
@@ -49,7 +49,7 @@ const AgentDetails: React.FC = () => {
       if (embeddedWallet) {
         try {
           const response = await fetch(
-            "http://localhost:3000/api/set-provider",
+            "https://plutus-jw9w.onrender.com/api/set-provider",
             {
               method: "POST",
               headers: {
@@ -80,7 +80,7 @@ const AgentDetails: React.FC = () => {
   }, [embeddedWallet]);
   useEffect(() => {
     // Connect to WebSocket
-    ws.current = new WebSocket("ws://localhost:3000");
+    ws.current = new WebSocket("https://plutus-jw9w.onrender.com");
 
 
     ws.current.onmessage = (event) => {
