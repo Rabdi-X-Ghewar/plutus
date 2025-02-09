@@ -37,7 +37,7 @@ const AgentDetails: React.FC = () => {
 
   useEffect(() => {
     // Connect to WebSocket
-    ws.current = new WebSocket("ws://localhost:3000");
+    ws.current = new WebSocket("https://plutus-jw9w.onrender.com");
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
