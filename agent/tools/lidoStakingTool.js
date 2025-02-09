@@ -6,10 +6,13 @@ import {
   http,
   parseEther,
 } from "viem";
-import { holesky } from "viem/chains";
+// import { holesky } from "viem/chains";
 import { getProvider, getUserAddress } from "./web3Provider.js";
 
-const RPC_URL = "https://holesky.drpc.org";
+
+const INFURA_API_KEY = "00d918690e7246579fb6feabe829e5c8"; // Replace with your Infura API Key
+const network = "sepolia"; // or "goerli", "polygon", etc.
+const RPC_URL = `https://${network}.infura.io/v3/${INFURA_API_KEY}`;
 
 // Helper function that can be used anywhere
 export const getAndValidateAddress = async () => {
@@ -37,7 +40,7 @@ const initializeLidoSDK = async () => {
   });
 
   return new LidoSDK({
-    chainId: 17000,
+    chainId: 11155111,
     rpcProvider,
     walletProvider: provider,
     rpcUrl: RPC_URL,

@@ -37,7 +37,7 @@ const AgentDetails: React.FC = () => {
   const ws = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { wallets } = useWallets();
-  const chainId = 17000;
+  const chainId = 11155111;
   const embeddedWallet =
     wallets.find((wallet) => wallet.walletClientType === "privy") || wallets[0];
   // Auto-scroll to bottom when new messages arrive
