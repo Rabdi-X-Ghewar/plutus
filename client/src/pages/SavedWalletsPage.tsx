@@ -16,7 +16,7 @@ import { Label } from "../components/ui/label";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { getWalletBalance } from "../lib/fetchWalletBalance";
-import { getSavedWallets, saveWallet } from "../apiClient";
+import { fetchWallet, getSavedWallets, saveWallet, sendServerTransaction } from "../apiClient";
 
 type SavedWallet = {
     nickname: string;
@@ -46,6 +46,7 @@ const SavedWalletsPage = () => {
     const [isAddWalletDialogOpen, setIsAddWalletDialogOpen] = useState(false); // State for Add Wallet Dialog
     const [newWalletNickname, setNewWalletNickname] = useState(""); // State for nickname input
     const [newWalletAddress, setNewWalletAddress] = useState(""); //
+    const [serverWallet, setServerWallet] = useState<{ address: string; balance: number } | null>(null);
     const { user } = usePrivy();
 
 
@@ -61,7 +62,7 @@ const SavedWalletsPage = () => {
                 return "Phantom";
         }
     }
-    
+
     const fetchSavedWallets = async () => {
         if (user?.email?.address) {
             const fetchedWallets = await getSavedWallets(user.email.address);
@@ -97,6 +98,22 @@ const SavedWalletsPage = () => {
             }
         };
 
+        const fetchServerWalletData = async () => {
+            try {
+                const wallet = await fetchWallet(user?.email?.address!);
+                const serverWalletAddress = wallet.wallet.address; // Replace with actual server wallet address
+                const balance = await getWalletBalance(serverWalletAddress);
+                setServerWallet({
+                    address: serverWalletAddress,
+                    balance: balance ? parseFloat(balance) : 0,
+                });
+            } catch (error) {
+                console.error("Error fetching server wallet balance:", error);
+            }
+        };
+
+        fetchServerWalletData();
+
         fetchWalletData();
     }, [wallets]);
 
@@ -129,39 +146,50 @@ const SavedWalletsPage = () => {
     const sendTransaction = async () => {
         if (!selectedWallet || !destinationAddress || !amount) return;
 
+
         try {
-            const wallet = wallets.find(
-                (wallet) => wallet.address === selectedWallet.address
-            );
-            if (!wallet) {
-                console.error("Wallet not found");
-                return;
+            if (selectedWallet.address === serverWallet?.address) {
+                console.log("Server Wallet");
+                const hash = await sendServerTransaction(user?.email?.address!, destinationAddress, amount);
+                if (hash) {
+                    toast.success("Server wallet transaction successful");
+                    setOpenDialog(false)
+                }
+            } else {
+                const wallet = wallets.find(
+                    (wallet) => wallet.address === selectedWallet.address
+                );
+                if (!wallet) {
+                    console.error("Wallet not found");
+                    return;
+                }
+
+                await wallet.switchChain(sepolia.id);
+                const provider = await wallet.getEthereumProvider();
+                if (!provider) {
+                    console.error("Ethereum provider is undefined");
+                    return;
+                }
+
+                const walletClient = createWalletClient({
+                    account: wallet.address as Hex,
+                    chain: sepolia,
+                    transport: custom(provider),
+                });
+
+                const [address] = await walletClient.getAddresses();
+                const hash = await walletClient.sendTransaction({
+                    account: address,
+                    to: destinationAddress as `0x${string}`,
+                    value: parseEther(amount),
+                });
+                toast.success("Transaction successful");
+                setOpenDialog(false);
+                setDestinationAddress("");
+                setAmount("");
+                return hash;
             }
 
-            await wallet.switchChain(sepolia.id);
-            const provider = await wallet.getEthereumProvider();
-            if (!provider) {
-                console.error("Ethereum provider is undefined");
-                return;
-            }
-
-            const walletClient = createWalletClient({
-                account: wallet.address as Hex,
-                chain: sepolia,
-                transport: custom(provider),
-            });
-
-            const [address] = await walletClient.getAddresses();
-            const hash = await walletClient.sendTransaction({
-                account: address,
-                to: destinationAddress as `0x${string}`,
-                value: parseEther(amount),
-            });
-
-            toast.success("Transaction successful");
-            setOpenDialog(false);
-            setDestinationAddress("");
-            setAmount("");
         } catch (error) {
             console.error("Error sending transaction:", error);
             toast.error("Error sending transaction");
@@ -256,11 +284,17 @@ const SavedWalletsPage = () => {
                                                     setSelectedWallet(
                                                         walletBalances.find(
                                                             (wallet) => wallet.address === e.target.value
-                                                        ) || null
+                                                        ) || serverWallet?.address === e.target.
+                                                            value
+                                                            ? serverWallet
+                                                            : null
                                                     )
                                                 }
                                             >
                                                 <option value="">Select a wallet</option>
+                                                <option value={serverWallet?.address}>
+                                                    Server Wallet - ({serverWallet?.balance.toFixed(4)} ETH)
+                                                </option>
                                                 {walletBalances.map((wallet, index) => (
                                                     <option key={index} value={wallet.address}>
                                                         {getWalletName(wallet.clientType || '')} -

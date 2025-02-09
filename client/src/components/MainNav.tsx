@@ -17,15 +17,9 @@ import { sepolia } from 'viem/chains';
 // ]
 
 export function MainNav() {
-    const { linkWallet, signMessage } = usePrivy();
+    const { linkWallet } = usePrivy();
     const { wallets } = useWallets()
     const { createWallet } = useCreateWallet();
-    const message = 'Hello world';
-    const uiOptions = {
-        title: 'Sample title text',
-        description: 'Sample description text',
-        buttonText: 'Sample button text',
-    };
 
     const sign = async () => {
         const wallet = wallets.find(wallet => wallet.walletClientType === 'privy');

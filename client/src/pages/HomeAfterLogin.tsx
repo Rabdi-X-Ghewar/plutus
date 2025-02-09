@@ -1,4 +1,4 @@
-import Navbar from "../components/Navbar"
+
 import { MainNav } from "../components/MainNav"
 import { AppSidebar } from "../components/AppSidebar"
 

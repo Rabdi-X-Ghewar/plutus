@@ -27,6 +27,9 @@ interface StakingCardProps {
   account: string;
 }
 
+const INFURA_API_KEY = "00d918690e7246579fb6feabe829e5c8"; // Replace with your Infura API Key
+const network = "sepolia"; // or "goerli", "polygon", etc.
+
 export const StakingCard: React.FC<StakingCardProps> = ({
   web3Provider,
   account,
@@ -327,7 +330,7 @@ export const StakingCard: React.FC<StakingCardProps> = ({
               <p className="text-sm text-white/90 font-mono">{status}</p>
               {txHash && (
                 <a
-                  href={`https://holesky.etherscan.io/tx/${txHash}`}
+                  href={`https://sepolia.etherscan.io/tx/${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-[#50fa7b] hover:underline font-mono mt-2 block"

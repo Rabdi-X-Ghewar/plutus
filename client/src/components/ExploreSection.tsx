@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { ArrowRight, TrendingUp, Shield, Coins } from 'lucide-react';
 import FloatingIcons from './FloatingIcons';
 

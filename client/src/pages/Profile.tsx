@@ -1,10 +1,10 @@
-import { ConnectedWallet, usePrivy, useWallets } from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useEffect, useState } from "react";
 import { getWalletBalance } from "../lib/fetchWalletBalance";
 import { Wallet2, CreditCard, Coins, Copy, Send, Wallet } from "lucide-react";
 import { fetchWallet, sendServerTransaction } from "../apiClient";
 import { toast } from "sonner";
-import { useCreateWallet } from '@privy-io/react-auth';
+
 import { createWalletClient, custom, Hex, parseEther } from 'viem';
 import { sepolia } from 'viem/chains';
 
@@ -170,6 +170,7 @@ const Profile = () => {
 
                 toast.success("Transaction successful");
                 setOpen(false)
+                return hash
 
             }
 
