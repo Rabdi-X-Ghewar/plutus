@@ -114,25 +114,25 @@ async function verify(proof, publicSignals) {
           console.log(`\tmerkleProof: ${merkleProof}`);
           console.log(`\tnumberOfLeaves: ${numberOfLeaves}`);
           console.log(`\tleafIndex: ${leafIndex}`);
-          // const txResponse = await appContract.proveVoteWasCast(
-          //   attestationId,
-          //   root,
-          //   nullifier,
-          //   merkleProof,
-          //   numberOfLeaves,
-          //   leafIndex,
-          //   voteCommitment
-          // );
-          // const { hash } = await txResponse;
-          // console.log(`Tx sent to EVM, tx-hash ${hash}`);
+          const txResponse = await appContract.proveVoteWasCast(
+            attestationId,
+            root,
+            nullifier,
+            merkleProof,
+            numberOfLeaves,
+            leafIndex,
+            voteCommitment
+          );
+          const { hash } = await txResponse;
+          console.log(`Tx sent to EVM, tx-hash ${hash}`);
 
 
-          // // Wait for transaction confirmation
-          // const receipt = await txResponse;
-          // console.log("Transaction confirmed:", receipt.status === 1 ? "Success" : "Failed");
+          // Wait for transaction confirmation
+          const receipt = await txResponse;
+          console.log("Transaction confirmed:", receipt.status === 1 ? "Success" : "Failed");
 
 
-          // return receipt.status === 1;
+          return receipt.status === 1;
           return true;
         } catch (txError) {
           console.error("Error in proveVoteWasCast:", txError);
