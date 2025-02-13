@@ -49,8 +49,8 @@ export const StakingCard: React.FC<StakingCardProps> = ({
   const lidoSDK = useMemo(() => {
     if (!web3Provider) return null;
     return new LidoSDK({
-      rpcUrls: [`https://${network}.infura.io/v3/${INFURA_API_KEY}`],
-      chainId: 11155111,
+      rpcUrls: [`https://holesky.drpc.org`],
+      chainId: 17000,
       web3Provider,
     });
   }, [web3Provider]);

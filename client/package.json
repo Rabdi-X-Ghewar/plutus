@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@lidofinance/lido-ethereum-sdk": "^4.2.0",
+    "@opencampus/ocid-connect-js": "^1.2.6",
     "@privy-io/react-auth": "^2.2.1",
     "@radix-ui/react-dialog": "^1.1.5",
     "@radix-ui/react-dropdown-menu": "^2.1.5",
@@ -22,6 +23,7 @@
     "@radix-ui/react-tabs": "^1.1.3",
     "@radix-ui/react-toast": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.1.7",
+    "@stakekit/widget": "^0.0.208",
     "@tailwindcss/vite": "^4.0.1",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
@@ -37,7 +39,8 @@
     "sonner": "^1.7.4",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
-    "viem": "^2.22.23"
+    "viem": "^2.23.1",
+    "wagmi": "^1.4.13"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

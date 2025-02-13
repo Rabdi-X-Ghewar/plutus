@@ -1,10 +1,12 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
-import { WalletIcon } from "lucide-react"
+import { UserCircle, WalletIcon } from "lucide-react"
 import { usePrivy, useWallets } from "@privy-io/react-auth"
 import { Button } from "./ui/button"
 import { useCreateWallet } from '@privy-io/react-auth';
 import { createWalletClient, custom, Hex, parseEther } from 'viem';
 import { sepolia } from 'viem/chains';
+import { useOCAuth } from '@opencampus/ocid-connect-js';
+
 
 // const items = [
 //     { title: "All", href: "#" },
@@ -20,6 +22,8 @@ export function MainNav() {
     const { linkWallet } = usePrivy();
     const { wallets } = useWallets()
     const { createWallet } = useCreateWallet();
+    const { isInitialized, authState, ocAuth, OCId, ethAddress } = useOCAuth();
+
 
     const sign = async () => {
         const wallet = wallets.find(wallet => wallet.walletClientType === 'privy');
@@ -59,6 +63,18 @@ export function MainNav() {
     }
 
 
+    const handleOCLogin = () => {
+        if (ocAuth) {
+            ocAuth.signInWithRedirect({ state: 'opencampus-student' });
+        }
+    };
+
+    const handleOCLogout = () => {
+
+        localStorage.removeItem('oc-token-storage');
+        window.location.reload();
+    };
+
 
     return (
         <nav className="flex justify-between w-full px-2 ">
@@ -78,6 +94,51 @@ export function MainNav() {
 
             </div>
 
+            <div className="flex items-center space-x-4">
+                {/* OCConnect Menu */}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button className="flex items-center space-x-2">
+                            <UserCircle />
+                            <span>Account</span>
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-fit px-4 py-2">
+                        {isInitialized && (
+                            <>
+                                {authState.error ? (
+                                    <DropdownMenuItem>
+                                        <span className="text-red-500">Error: {authState.error.message}</span>
+                                    </DropdownMenuItem>
+                                ) : authState.isAuthenticated ? (
+                                    <>
+                                        <DropdownMenuItem>
+                                            <div className="flex flex-col space-y-1">
+                                                <span className="font-semibold">OCConnect ID:</span>
+                                                <span className="text-sm text-gray-600">{OCId}</span>
+                                                {ethAddress && (
+                                                    <>
+                                                        <span className="font-semibold">ETH Address:</span>
+                                                        <span className="text-sm text-gray-600">{ethAddress}</span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={handleOCLogout}>
+                                            <Button variant="outline" className="w-full">Logout</Button>
+                                        </DropdownMenuItem>
+                                    </>
+                                ) : (
+                                    <DropdownMenuItem onClick={handleOCLogin}>
+                                        <Button variant="outline" className="w-full">Login with OCConnect</Button>
+                                    </DropdownMenuItem>
+                                )}
+                            </>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+
+            </div>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <button className="flex items-center space-x-2">

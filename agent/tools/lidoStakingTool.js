@@ -1,18 +1,11 @@
 import { DynamicStructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
 import { LidoSDK, LidoSDKCore } from "@lidofinance/lido-ethereum-sdk";
-import {
-  createPublicClient,
-  http,
-  parseEther,
-} from "viem";
-import { sepolia } from "viem/chains";
+import { createPublicClient, http, parseEther } from "viem";
+import { holesky } from "viem/chains";
 import { getProvider, getUserAddress } from "./web3Provider.js";
 
-
-const INFURA_API_KEY = "00d918690e7246579fb6feabe829e5c8"; // Replace with your Infura API Key
-const network = "sepolia"; // or "goerli", "polygon", etc.
-const RPC_URL = `https://${network}.infura.io/v3/${INFURA_API_KEY}`;
+const RPC_URL = "https://holesky.drpc.org";
 
 // Helper function that can be used anywhere
 export const getAndValidateAddress = async () => {
@@ -35,12 +28,12 @@ const initializeLidoSDK = async () => {
   const provider = await getAndValidateProvider();
 
   const rpcProvider = createPublicClient({
-    chain: sepolia,
+    chain: holesky,
     transport: http(RPC_URL),
   });
 
   return new LidoSDK({
-    chainId: 11155111,
+    chainId: 17000,
     rpcProvider,
     walletProvider: provider,
     rpcUrl: RPC_URL,
@@ -147,12 +140,20 @@ class LidoStakingTool extends DynamicStructuredTool {
 
   async getBalances() {
     try {
-      const userAddress = await getAndValidateAddress(); // Using the helper function
+      const userAddress = await getAndValidateAddress();
       console.log("Fetching balances for address:", userAddress);
 
       const ethBalance = await lidoSDK.core.balanceETH(userAddress);
+      const stakedBalance = await lidoSDK.shares.balance(userAddress);
+
+      // Check if user has more than 1 ETH staked
+      const canVote = Number(stakedBalance) >= 1e18; // 1e18 wei = 1 ETH
+
       return {
         ethBalance: ethBalance.toString(),
+        stakedBalance: stakedBalance.toString(),
+        canVote,
+        votingPower: canVote ? stakedBalance.toString() : "0",
       };
     } catch (error) {
       console.error("Error fetching balances:", error);

@@ -1,0 +1,34 @@
+{
+    "name": "zeroknowledgevoting",
+    "version": "1.0.0",
+    "description": "A secure voting app using zero-knowledge proofs and Merkle trees for privacy and verifiability.",
+    "main": "server.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "init-poll": "node ./src/generateVoterMapping.js && node ./src/normalizeVoter.js && node ./src/resetResults.js && node ./src/generateVotingID.js",
+        "vote": "node ./src/getTicketAndVote.js",
+        "start": "node ./src/server.js",
+        "dev": "nodemon ./src/server.js"
+    },
+    "author": "zkPickachu",
+    "license": "MIT",
+    "dependencies": {
+        "app-root-path": "^3.1.0",
+        "big-integer": "^1.6.52",
+        "body-parser": "^1.20.2",
+        "circomlib": "^2.0.5",
+        "circomlibjs": "^0.1.7",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.7",
+        "ethers": "^6.13.5",
+        "express": "^4.18.2",
+        "prompt-sync": "^4.2.0",
+        "snarkjs": "^0.6.11",
+        "uuid": "^11.0.5",
+        "yargs": "^17.7.2",
+        "zkverifyjs": "^0.6.0"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.7"
+    }
+}

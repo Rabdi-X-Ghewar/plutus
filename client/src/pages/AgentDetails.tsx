@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Send } from "lucide-react";
+import { ArrowLeft, Send } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { ScrollArea } from "../components/ui/scroll-area";
@@ -17,7 +17,9 @@ import {
 } from "../components/ui/AgentCards";
 import { Message } from "../types/AgentInterfaces";
 import { StakingCard } from "../components/ui/StakingCard";
-import { LidoSDKCore } from "@lidofinance/lido-ethereum-sdk";
+import { LidoSDK, LidoSDKCore } from "@lidofinance/lido-ethereum-sdk";
+import { createPublicClient, http } from "viem";
+import { holesky } from "viem/chains";
 
 const PLUTUS_ASCII = `
 ██████╗ ██╗     ██╗   ██╗████████╗██╗   ██╗███████╗
@@ -37,9 +39,12 @@ const AgentDetails: React.FC = () => {
   const ws = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { wallets } = useWallets();
-  const chainId = 11155111;
+  const chainId = 17000;
   const embeddedWallet =
     wallets.find((wallet) => wallet.walletClientType === "privy") || wallets[0];
+  const [votingPower, setVotingPower] = useState<string>("0");
+  const [canVote, setCanVote] = useState<boolean>(false);
+  const RPC_URL = "https://holesky.drpc.org";
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -49,7 +54,7 @@ const AgentDetails: React.FC = () => {
       if (embeddedWallet) {
         try {
           const response = await fetch(
-            "https://plutus-jw9w.onrender.com/api/set-provider",
+            "http://localhost:3000/api/set-provider",
             {
               method: "POST",
               headers: {
@@ -80,8 +85,7 @@ const AgentDetails: React.FC = () => {
   }, [embeddedWallet]);
   useEffect(() => {
     // Connect to WebSocket
-    ws.current = new WebSocket("https://plutus-jw9w.onrender.com");
-
+    ws.current = new WebSocket("ws://localhost:3000");
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -154,6 +158,40 @@ const AgentDetails: React.FC = () => {
     };
     return () => ws.current?.close();
   }, []);
+
+  useEffect(() => {
+    const checkVotingPower = async () => {
+      if (authenticated && embeddedWallet && user?.wallet?.address) {
+        try {
+          const rpcProvider = createPublicClient({
+            chain: holesky,
+            transport: http(RPC_URL),
+          });
+          const provider = LidoSDKCore.createWeb3Provider(
+            chainId,
+            window.ethereum
+          );
+          const lidoSDK = new LidoSDK({
+            chainId: chainId,
+            rpcProvider,
+            web3Provider: provider,
+          });
+
+          const stakedBalance = await lidoSDK.shares.balance(
+            user.wallet.address as `0x${string}`
+          );
+
+          const hasVotingPower = Number(stakedBalance) >= 1e18; // 1 ETH in wei
+          setVotingPower(stakedBalance.toString());
+          setCanVote(hasVotingPower);
+        } catch (error) {
+          console.error("Error checking voting power:", error);
+        }
+      }
+    };
+
+    checkVotingPower();
+  }, [authenticated, embeddedWallet, user?.wallet?.address]);
 
   const handleSendMessage = () => {
     if (!input.trim() || !ws.current) return;
@@ -304,11 +342,24 @@ const AgentDetails: React.FC = () => {
       {/* Right Side - Explore and Cards */}
       <div className="flex-1 flex flex-col gap-6 p-6 bg-black">
         <div className="flex-1 overflow-y-auto">
-          <div
-            className="text-xl font-semibold text-white mb-4"
-            style={{ textShadow: "0 0 10px rgba(255,255,255,0.5)" }}
-          >
-            Explore
+          <div className="flex justify-between items-center mb-4">
+            <div
+              className="text-xl font-semibold text-white"
+              style={{ textShadow: "0 0 10px rgba(255,255,255,0.5)" }}
+            >
+              Explore
+            </div>
+            {canVote && (
+              <Button
+                onClick={() => (window.location.href = "/governance")}
+                className="bg-[#50fa7b] hover:bg-[#50fa7b]/80 text-black font-semibold"
+              >
+                Go to Voting
+                <span className="ml-2 text-xs">
+                  (Power: {parseFloat(votingPower) / 1e18} stETH)
+                </span>
+              </Button>
+            )}
           </div>
           <div className="space-y-4">
             {renderCard()}
@@ -325,7 +376,6 @@ const AgentDetails: React.FC = () => {
                     window.ethereum
                   )}
                   account={user?.wallet?.address || ""}
-
                 />
               </div>
             )}

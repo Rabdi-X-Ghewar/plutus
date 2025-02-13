@@ -19,7 +19,7 @@ const sidebarItems = [
     { icon: Wine, label: "Transactions", href: "/transactions" },
     { icon: Users, label: "Chat Bot", href: "/chat-bot" },
     { icon: Fish, label: "Saved Wallets", href: "/saved-wallets" },
-    { icon: Waves, label: "Bots", href: "#" },
+    { icon: Waves, label: "Governance", href: "/governance" },
     { icon: Trophy, label: "Rewards", href: "#" },
     { icon: Home, label: "Settings", href: "#" },
 ]
