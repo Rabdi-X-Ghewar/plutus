@@ -27,9 +27,6 @@ interface StakingCardProps {
   account: string;
 }
 
-const INFURA_API_KEY = "00d918690e7246579fb6feabe829e5c8"; // Replace with your Infura API Key
-const network = "sepolia"; // or "goerli", "polygon", etc.
-
 export const StakingCard: React.FC<StakingCardProps> = ({
   web3Provider,
   account,

@@ -3,7 +3,7 @@ import { MainNav } from "../components/MainNav"
 import { AppSidebar } from "../components/AppSidebar"
 
 import { SidebarProvider, SidebarTrigger } from "../components/ui/sidebar"
-import { OCConnect } from "@opencampus/ocid-connect-js"
+
 
 
 const HomeAfterLogin = () => {

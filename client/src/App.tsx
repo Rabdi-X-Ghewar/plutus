@@ -1,7 +1,7 @@
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router'
+import { Navigate, Route, Routes, useNavigate } from 'react-router'
 import './App.css'
 import "@stakekit/widget/style.css";
-import { SKApp, darkTheme } from "@stakekit/widget";
+
 
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import HomeBeforeLogin from './pages/HomeBeforeLogin';

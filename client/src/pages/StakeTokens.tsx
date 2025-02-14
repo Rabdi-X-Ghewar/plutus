@@ -1,21 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Input } from '../components/ui/input';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import { Loader2 } from 'lucide-react';
-import { createWalletClient, custom, parseEther, type Hex } from 'viem';
+import { AlertCircle, ArrowDownCircle, ArrowUpCircle, Loader2, Percent, Wallet, BarChart3 } from 'lucide-react';
+import { createWalletClient, custom, type Hex } from 'viem';
 import { mainnet, sepolia, holesky } from 'viem/chains';
 import { toast } from 'sonner';
+import { Separator } from '../components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 
 // Chain configurations
 const CHAIN_CONFIGS = {
     'ethereum': mainnet,
     'ethereum-sepolia': sepolia,
     'ethereum-holesky': holesky,
-};
+} as const;
 
 interface YieldOpportunity {
     id: string;
@@ -23,6 +25,7 @@ interface YieldOpportunity {
     token: {
         address?: string;
         symbol: string;
+        network: string;
     };
     metadata: {
         name: string;
@@ -41,6 +44,24 @@ interface YieldOpportunity {
                     required: boolean;
                     network: string;
                 };
+                additionalAddresses?: any;
+            };
+            args: {
+                amount: {
+                    required: boolean;
+                    minimum: number;
+                };
+                validatorAddress?: any;
+                validatorAddresses?: any;
+            };
+        };
+        exit?: {
+            addresses: {
+                address: {
+                    required: boolean;
+                    network: string;
+                };
+                additionalAddresses?: any;
             };
             args: {
                 amount: {
@@ -52,42 +73,88 @@ interface YieldOpportunity {
     };
 }
 
+interface StakedBalance {
+    integrationId: string;
+    amount: string;
+    type: string;
+    validatorAddress?: string;
+}
+
+interface Network {
+    id: string;
+    name: string;
+}
+
 const STAKEKIT_API_KEY = "33bea379-2557-4368-9d3d-09e0b47d6a68";
 const BASE_URL = "https://api.stakek.it";
 
-const StakingPage = () => {
-    const { user, authenticated } = usePrivy();
+const NETWORKS: Network[] = [
+    { id: "ethereum-holesky", name: "Ethereum Holesky" },
+    { id: "ethereum", name: "Ethereum" },
+    { id: "ethereum-sepolia", name: "Ethereum Sepolia" }
+];
+
+type ActionType = 'enter' | 'exit';
+
+const StakingPage: React.FC = () => {
+    const { authenticated } = usePrivy();
     const { wallets } = useWallets();
-    const wallet = wallets[1];
+    const wallet = wallets.find(
+        (wallet) => wallet.walletClientType === 'metamask'
+    );
 
     const [network, setNetwork] = useState("ethereum-holesky");
     const [yields, setYields] = useState<YieldOpportunity[]>([]);
     const [loading, setLoading] = useState(false);
+    const [transactionLoading, setTransactionLoading] = useState(false);
     const [selectedYield, setSelectedYield] = useState<YieldOpportunity | null>(null);
     const [amount, setAmount] = useState("");
     const [error, setError] = useState("");
     const [userBalance, setUserBalance] = useState("0");
+    const [stakedBalance, setStakedBalance] = useState<StakedBalance[]>([]);
+    const [exitAmount, setExitAmount] = useState("");
+    const [action, setAction] = useState<ActionType>('enter');
 
-    const networks = [
-        { id: "ethereum-holesky", name: "Ethereum Holesky" },
-        { id: "ethereum", name: "Ethereum" },
-        { id: "ethereum-sepolia", name: "Ethereum Sepolia" }
-    ];
+    // Derived state
+    const totalStakedAmount = useMemo(() => {
+        return stakedBalance
+            .filter(balance => ["preparing", "staked"].includes(balance.type))
+            .reduce((sum, balance) => {
+                return sum + parseFloat(balance.amount);
+            }, 0)
+            .toFixed(18); // Use higher precision to match ETH decimals
+    }, [stakedBalance]);
+
+    const estimatedAnnualReward = useMemo(() => {
+        if (!selectedYield || parseFloat(totalStakedAmount) <= 0) return 0;
+        return parseFloat(totalStakedAmount) * selectedYield.apy;
+    }, [totalStakedAmount, selectedYield]);
+
+    // const isValidNetworkType = (network: string): network is keyof typeof CHAIN_CONFIGS => {
+    //     return network in CHAIN_CONFIGS;
+    // };
 
     const fetchYields = async () => {
         try {
             setLoading(true);
+            setError("");
             const response = await fetch(`${BASE_URL}/v1/yields?network=${network}`, {
                 headers: {
                     "Content-Type": "application/json",
                     "X-API-KEY": STAKEKIT_API_KEY,
                 },
             });
+
+            if (!response.ok) {
+                throw new Error(`API returned status ${response.status}`);
+            }
+
             const data = await response.json();
             const filteredYields = filterYields(data.data);
             setYields(filteredYields);
-        } catch (error) {
-            setError("Failed to fetch yield opportunities");
+        } catch (err) {
+            setError(`Failed to fetch yield opportunities: ${err instanceof Error ? err.message : 'Unknown error'}`);
+            toast.error("Couldn't load yield opportunities. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -103,13 +170,14 @@ const StakingPage = () => {
     };
 
     const fetchUserBalance = async () => {
-        if (!authenticated || !user?.wallet?.address) return;
+        if (!authenticated || !wallet?.address || !selectedYield) return;
 
         try {
+            setError("");
             const tokenAddress = selectedYield?.token?.address ?? "native";
             const payload = [{
                 network,
-                address: user.wallet.address,
+                address: wallet.address,
                 ...(tokenAddress !== "native" && { tokenAddress })
             }];
 
@@ -121,22 +189,109 @@ const StakingPage = () => {
                 },
                 body: JSON.stringify({ addresses: payload })
             });
+
+            if (!response.ok) {
+                throw new Error(`API returned status ${response.status}`);
+            }
+
             const data = await response.json();
             setUserBalance(data[0]?.amount || "0");
-        } catch (error) {
-            setError("Failed to fetch balance");
+        } catch (err) {
+            setError(`Failed to fetch balance: ${err instanceof Error ? err.message : 'Unknown error'}`);
+            toast.error("Couldn't retrieve your balance.");
         }
     };
 
-    const handleStake = async () => {
-        if (!authenticated || !selectedYield || !wallet) return;
+    const fetchStakedBalance = async () => {
+        if (!authenticated || !wallet?.address || !selectedYield) return;
 
         try {
-            setLoading(true);
+            setError("");
+            const response = await fetch(`${BASE_URL}/v1/yields/${selectedYield.id}/balances`, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-API-KEY": STAKEKIT_API_KEY,
+                },
+                body: JSON.stringify({
+                    addresses: { address: wallet.address }
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API returned status ${response.status}`);
+            }
+
+            const data = await response.json();
+            setStakedBalance(data);
+        } catch (err) {
+            setError(`Failed to fetch staked balance: ${err instanceof Error ? err.message : 'Unknown error'}`);
+            toast.error("Couldn't retrieve your staked balance.");
+        }
+    };
+
+    const monitorTransaction = async (txId: string, hash: string): Promise<boolean> => {
+        let retries = 0;
+        const maxRetries = 30; // 1 minute (2s intervals)
+
+        while (retries < maxRetries) {
+            try {
+                const statusResponse = await fetch(`${BASE_URL}/v1/transactions/${txId}/status`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-API-KEY": STAKEKIT_API_KEY,
+                    },
+                });
+
+                if (!statusResponse.ok) {
+                    throw new Error(`API returned status ${statusResponse.status}`);
+                }
+
+                const status = await statusResponse.json();
+
+                if (status.status === "CONFIRMED") {
+                    toast.success(
+                        <div className="flex flex-col">
+                            <span>Transaction confirmed</span>
+                            <a
+                                href={status.url || `https://etherscan.io/tx/${hash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline text-sm"
+                            >
+                                View transaction
+                            </a>
+                        </div>
+                    );
+                    return true;
+                } else if (status.status === "FAILED") {
+                    throw new Error("Transaction failed");
+                }
+            } catch (err) {
+                console.error("Error checking transaction status:", err);
+            }
+
+            retries++;
+            await new Promise(r => setTimeout(r, 2000));
+        }
+
+        toast.warning("Transaction is taking longer than expected but may still complete.");
+        return false;
+    };
+
+    const handleAction = async () => {
+        if (!authenticated || !selectedYield || !wallet?.address) {
+            toast.error("Please connect your wallet first");
+            return;
+        }
+
+        try {
+            setTransactionLoading(true);
             setError("");
 
             // Create staking session
-            const session = await fetch(`${BASE_URL}/v1/actions/enter`, {
+            const session = await fetch(`${BASE_URL}/v1/actions/${action}`, {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
@@ -144,40 +299,63 @@ const StakingPage = () => {
                 },
                 body: JSON.stringify({
                     integrationId: selectedYield.id,
-                    addresses: { address: user?.wallet?.address },
-                    args: { amount }
+                    addresses: { address: wallet.address },
+                    args: { amount: action === 'enter' ? amount : exitAmount }
                 })
             });
 
-            const { transactions } = await session.json();
+            if (!session.ok) {
+                throw new Error(`Failed to create session: ${session.status}`);
+            }
+
+            const sessionData = await session.json();
+            if (!sessionData.transactions) {
+                throw new Error("No transactions returned from API");
+            }
+
             // Process each transaction
-            for (const tx of transactions) {
-                const status = await fetch(`${BASE_URL}/v1/transactions/${tx.id}/status`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-API-KEY": STAKEKIT_API_KEY,
-                    },
-                })
+            for (const tx of sessionData.transactions) {
+                if (tx.status === "SKIPPED") continue;
 
-                const st = await status.json();
-                if (!st) {
-                    console.log("Earn Agent => no TX status => break");
-                    break;
-                }
-                if (st.status === "SKIPPED") continue;
+                // Fetch unsigned transaction
+                let unsignedTx;
+                for (let i = 0; i < 3; i++) {
+                    try {
+                        const unsignedTxResponse = await fetch(`${BASE_URL}/v1/transactions/${tx.id}`, {
+                            method: 'PATCH',
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-API-KEY": STAKEKIT_API_KEY,
+                            }
+                        });
 
-                // Get unsigned transaction
-                const unsignedTxResponse = await fetch(`${BASE_URL}/v1/transactions/${tx.id}`, {
-                    method: 'PATCH',
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-API-KEY": STAKEKIT_API_KEY,
+                        if (!unsignedTxResponse.ok) {
+                            throw new Error(`API returned status ${unsignedTxResponse.status}`);
+                        }
+
+                        unsignedTx = await unsignedTxResponse.json();
+                        break;
+                    } catch (err) {
+                        console.log(`Attempt ${i + 1} => retrying...`);
+                        await new Promise((r) => setTimeout(r, 1000));
                     }
-                });
-                const unsignedTx = await unsignedTxResponse.json();
+                }
+
+                if (!unsignedTx) {
+                    throw new Error("Failed to get unsigned transaction after multiple attempts");
+                }
+
                 const txData = JSON.parse(unsignedTx.unsignedTransaction);
-                await wallet.switchChain(holesky.id);
+
+                // Switch chain if needed
+                if (unsignedTx.network === 'ethereum-holesky') {
+                    await wallet.switchChain(holesky.id);
+                } else if (unsignedTx.network === 'ethereum-sepolia') {
+                    await wallet.switchChain(sepolia.id);
+                } else if (unsignedTx.network === 'ethereum') {
+                    await wallet.switchChain(mainnet.id);
+                }
+
                 // Get provider and create wallet client
                 const provider = await wallet.getEthereumProvider();
                 if (!provider) {
@@ -186,59 +364,37 @@ const StakingPage = () => {
 
                 const walletClient = createWalletClient({
                     account: wallet.address as Hex,
-                    chain: CHAIN_CONFIGS[network as keyof typeof CHAIN_CONFIGS],
+                    chain: CHAIN_CONFIGS[unsignedTx.network as keyof typeof CHAIN_CONFIGS],
                     transport: custom(provider),
                 });
 
                 // Send transaction
-                const [address] = await walletClient.getAddresses();
-                const hash = await walletClient.sendTransaction({
-                    account: address,
-                    to: txData.to as `0x${string}`,
-                    value: BigInt(txData.value || "0"), // Changed this line - using BigInt directly instead of parseEther
-                    data: txData.data,
-                    gas: txData.gas ? BigInt(txData.gas) : undefined,
-                    gasPrice: txData.gasPrice ? BigInt(txData.gasPrice) : undefined,
-                });
+                const hash = await walletClient.sendTransaction(txData);
 
                 // Submit transaction hash
-                await fetch(`${BASE_URL}/v1/transactions/${tx.id}/submit`, {
+                await fetch(`${BASE_URL}/v1/transactions/${tx.id}/submit_hash`, {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json",
                         "X-API-KEY": STAKEKIT_API_KEY,
                     },
-                    body: JSON.stringify({ signedTransaction: hash })
+                    body: JSON.stringify({ hash })
                 });
 
-                // Monitor transaction status
-                while (true) {
-                    const statusResponse = await fetch(`${BASE_URL}/v1/transactions/${tx.id}/status`, {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-API-KEY": STAKEKIT_API_KEY,
-                        },
-                    });
-                    const status = await statusResponse.json();
-
-                    if (st.status === "CONFIRMED") {
-                        toast.success("Transaction confirmed");
-                        break;
-                    } else if (status.status === "FAILED") {
-                        throw new Error("Transaction failed");
-                    }
-                    await new Promise(r => setTimeout(r, 2000));
-                }
+                await monitorTransaction(tx.id, hash);
             }
 
             setAmount("");
+            setExitAmount("");
             fetchUserBalance();
-        } catch (error) {
-            toast.error("Staking failed. Please try again.");
-            setError("Staking failed. Please try again.");
+            fetchStakedBalance();
+            toast.success(`${action === 'enter' ? 'Staking' : 'Unstaking'} operation completed successfully!`);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "Please try again";
+            toast.error(`Operation failed: ${errorMessage}`);
+            setError(`${action === 'enter' ? 'Staking' : 'Unstaking'} failed: ${errorMessage}`);
         } finally {
-            setLoading(false);
+            setTransactionLoading(false);
         }
     };
 
@@ -251,8 +407,18 @@ const StakingPage = () => {
     useEffect(() => {
         if (selectedYield) {
             fetchUserBalance();
+            fetchStakedBalance();
         }
     }, [selectedYield]);
+
+    // Reset fields when changing action
+    useEffect(() => {
+        if (action === 'enter') {
+            setExitAmount("");
+        } else {
+            setAmount("");
+        }
+    }, [action]);
 
     if (!authenticated) {
         return (
@@ -265,97 +431,311 @@ const StakingPage = () => {
             </div>
         );
     }
-
+    console.log("Total Staked Amount: ", totalStakedAmount);
     return (
-        <div className="container mx-auto px-4 py-8">
-            <Card className="w-full max-w-4xl mx-auto">
-                <CardHeader>
-                    <CardTitle>Stake Your Assets</CardTitle>
-                </CardHeader>
-                <CardContent>
+        <div className=" min-h-screen bg-gradient-to-b from-background to-muted p-4 sm:p-8 ">
+            <div className="max-w-6xl mx-auto space-y-8">
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-4xl font-bold tracking-tight">Staking Dashboard</h1>
+                    <p className="text-muted-foreground">Earn rewards by staking your assets</p>
+                </div>
+
+                {error && (
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
+
+                <div className="grid gap-6 md:grid-cols-[300px_1fr]">
                     <div className="space-y-6">
-                        {error && (
-                            <Alert variant="destructive">
-                                <AlertDescription>{error}</AlertDescription>
-                            </Alert>
-                        )}
+                        <Card className="h-fit bg-gray-700">
+                            <CardHeader>
+                                <CardTitle className='text-white'>Network</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Select
+                                    value={network}
+                                    onValueChange={(value) => {
+                                        setNetwork(value);
+                                        setSelectedYield(null);
+                                        setAmount("");
+                                        setExitAmount("");
+                                    }}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {NETWORKS.map((net) => (
+                                            <SelectItem key={net.id} value={net.id}>
+                                                {net.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </CardContent>
+                        </Card>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Select Network</label>
-                            <Select value={network} onValueChange={setNetwork}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {networks.map((net) => (
-                                        <SelectItem key={net.id} value={net.id}>
-                                            {net.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {loading ? (
-                            <div className="flex justify-center p-4">
-                                <Loader2 className="h-6 w-6 animate-spin" />
-                            </div>
-                        ) : (
-                            <>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Select Yield Opportunity</label>
-                                    <Select
-                                        value={selectedYield?.id || ""}
-                                        onValueChange={(value) => setSelectedYield(yields.find(y => y.id === value) || null)}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select a yield opportunity" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {yields.map((y) => (
-                                                <SelectItem key={y.id} value={y.id}>
-                                                    {y.metadata.name} - APY: {(y.apy * 100).toFixed(2)}%
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {selectedYield && (
-                                    <div className="space-y-4">
-                                        <div className="p-4 bg-gray-50 rounded-lg">
-                                            <p>Available Balance: {userBalance} {selectedYield.token.symbol}</p>
-                                            <p>Minimum Stake: {selectedYield.args.enter.args.amount.minimum}</p>
+                        {selectedYield && parseFloat(totalStakedAmount) > 0 && (
+                            <Card className='bg-gray-700'>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-white" >
+                                        <BarChart3 className="h-5 w-5" />
+                                        Your Staked Position
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-300">Total Staked</span>
+                                            <span className="font-medium text-gray-200">
+                                                {parseFloat(totalStakedAmount).toLocaleString(undefined, {
+                                                    minimumFractionDigits: 0,
+                                                    maximumFractionDigits: 4
+                                                })} {selectedYield.token.symbol}
+                                            </span>
                                         </div>
-
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium">Amount to Stake</label>
-                                            <Input
-                                                type="number"
-                                                value={amount}
-                                                onChange={(e) => setAmount(e.target.value)}
-                                                placeholder="Enter amount to stake"
-                                                min={selectedYield.args.enter.args.amount.minimum}
-                                            />
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-300">Current APY</span>
+                                            <span className="font-medium text-green-600">{(selectedYield.apy * 100).toFixed(2)}%</span>
                                         </div>
-
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-300">Est. Annual Reward</span>
+                                            <span className="font-medium text-green-600">
+                                                {estimatedAnnualReward.toLocaleString(undefined, {
+                                                    minimumFractionDigits: 0,
+                                                    maximumFractionDigits: 4
+                                                })} {selectedYield.token.symbol}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <Separator />
+                                    <div>
                                         <Button
-                                            onClick={handleStake}
-                                            disabled={loading || !amount || parseFloat(amount) <= 0}
+                                            variant="outline"
                                             className="w-full"
+                                            onClick={() => {
+                                                setAction('exit');
+                                                setTimeout(() => {
+                                                    document.getElementById('unstake-tab')?.click();
+                                                }, 0);
+                                            }}
                                         >
-                                            {loading ? (
-                                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                            ) : null}
-                                            Stake
+                                            <ArrowDownCircle className="h-4 w-4 mr-2" />
+                                            Manage Staked Position
                                         </Button>
                                     </div>
-                                )}
-                            </>
+                                </CardContent>
+                            </Card>
                         )}
                     </div>
-                </CardContent>
-            </Card>
+
+                    <div className="space-y-6 rounded-xl">
+                        {loading ? (
+                            <Card className=''>
+                                <CardContent className="flex items-center justify-center min-h-[300px]">
+                                    <Loader2 className="h-8 w-8 animate-spin" />
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <Card className='bg-gray-700 rounded-xl' >
+                                <CardHeader className='bg-gray-700'>
+                                    <CardTitle className='text-white'>Yield Opportunities</CardTitle>
+                                    <CardDescription className='text-gray-300'>Select an opportunity to start staking</CardDescription>
+                                </CardHeader>
+                                <CardContent className="">
+                                    {yields.length > 0 ? (
+                                            <Select
+                                                value={selectedYield?.id || ""}
+                                                onValueChange={(value) => {
+                                                    setSelectedYield(yields.find(y => y.id === value) || null);
+                                                    setAmount("");
+                                                    setExitAmount("");
+                                                }}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select a yield opportunity" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {yields.map((y) => (
+                                                        <SelectItem key={y.id} value={y.id}>
+                                                            {y.metadata.name} - APY: {(y.apy * 100).toFixed(2)}%
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+
+                                    ) : (
+                                        <p className="text-center text-muted-foreground">
+                                            No yield opportunities available for this network.
+                                        </p>
+                                    )}
+
+                                    {selectedYield && (
+                                        <div className="space-y-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
+                                                <div className="flex items-center gap-3 p-4 rounded-lg">
+                                                    <Wallet className="h-5 w-5 text-white " />
+                                                    <div>
+                                                        <p className="text-sm font-medium">Available Balance</p>
+                                                        <p className="text-2xl font-bold">
+                                                            {parseFloat(userBalance).toLocaleString(undefined, {
+                                                                minimumFractionDigits: 0,
+                                                                maximumFractionDigits: 4
+                                                            })} {selectedYield.token.symbol}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3 p-4 rounded-lg">
+                                                    <Percent className="h-5 w-5 text-white" />
+                                                    <div>
+                                                        <p className="text-sm font-medium">Current APY</p>
+                                                        <p className="text-2xl font-bold">{(selectedYield.apy * 100).toFixed(2)}%</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <Separator />
+
+                                            <div className="space-y-2">
+                                                <h3 className="font-medium text-white">Staking Information</h3>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                                    <div className="p-3 bg-white rounded-lg">
+                                                        <p className="text-sm text-muted-foreground">Minimum Stake</p>
+                                                        <p className="font-medium">{selectedYield.args.enter.args.amount.minimum} {selectedYield.token.symbol}</p>
+                                                    </div>
+                                                    {selectedYield.metadata.cooldownPeriod && (
+                                                        <div className="p-3 bg-white rounded-lg">
+                                                            <p className="text-sm text-muted-foreground">Cooldown Period</p>
+                                                            <p className="font-medium">{selectedYield.metadata.cooldownPeriod.days} days</p>
+                                                        </div>
+                                                    )}
+                                                    {selectedYield.metadata.withdrawPeriod && (
+                                                        <div className="p-3 bg-muted/30 rounded-lg">
+                                                            <p className="text-sm text-muted-foreground">Withdraw Period</p>
+                                                            <p className="font-medium">{selectedYield.metadata.withdrawPeriod.days} days</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <Tabs
+                                                value={action}
+                                                onValueChange={(v) => setAction(v as ActionType)}
+                                                className="w-full"
+                                            >
+                                                <TabsList className="grid w-full grid-cols-2">
+                                                    <TabsTrigger value="enter">
+                                                        <ArrowUpCircle className="h-4 w-4 mr-2" />
+                                                        Stake
+                                                    </TabsTrigger>
+                                                    <TabsTrigger
+                                                        id="unstake-tab"
+                                                        value="exit"
+                                                        disabled={parseFloat(totalStakedAmount) <= 0}
+                                                    >
+                                                        <ArrowDownCircle className="h-4 w-4 mr-2" />
+                                                        Unstake
+                                                    </TabsTrigger>
+                                                </TabsList>
+                                                <TabsContent value="enter" className="space-y-4">
+                                                    <div className="space-y-2">
+                                                        <label htmlFor="stake-amount" className="text-sm text-white font-medium">Amount to Stake</label>
+                                                        <Input
+                                                        className='bg-white'
+                                                            id="stake-amount"
+                                                            type="number"
+                                                            value={amount}
+                                                            onChange={(e) => setAmount(e.target.value)}
+                                                            placeholder={`Minimum ${selectedYield.args.enter.args.amount.minimum}`}
+                                                            min={selectedYield.args.enter.args.amount.minimum}
+                                                            step="any"
+                                                        />
+                                                        {userBalance !== "0" && (
+                                                            <div className="text-right">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setAmount(userBalance)}
+                                                                    className="text-xs text-primary hover:underline"
+                                                                >
+                                                                    Max
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <Button
+                                                        onClick={handleAction}
+                                                        disabled={
+                                                            transactionLoading ||
+                                                            !amount ||
+                                                            parseFloat(amount) <= 0 ||
+                                                            parseFloat(amount) < selectedYield.args.enter.args.amount.minimum ||
+                                                            parseFloat(amount) > parseFloat(userBalance)
+                                                        }
+                                                        className="w-full bg-gray-600"
+                                                        size="lg"
+                                                    >
+                                                        {transactionLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                                                        Stake {amount ? parseFloat(amount).toLocaleString(undefined, {
+                                                            minimumFractionDigits: 0,
+                                                            maximumFractionDigits: 4
+                                                        }) : '0'} {selectedYield.token.symbol}
+                                                    </Button>
+                                                </TabsContent>
+                                                <TabsContent value="exit" className="space-y-4">
+                                                    <div className="space-y-2">
+                                                        <label htmlFor="unstake-amount" className="text-sm text-white font-medium">Amount to Unstake</label>
+                                                        <Input
+                                                            className='bg-white'
+                                                            id="unstake-amount"
+                                                            type="number"
+                                                            value={exitAmount}
+                                                            onChange={(e) => setExitAmount(e.target.value)}
+                                                            placeholder={`Maximum 0.2`}
+                                                            min={selectedYield.args.exit?.args.amount.minimum || 0}
+                                                            max={totalStakedAmount}
+                                                            step="any"
+                                                        />
+                                                        {totalStakedAmount !== "0" && (
+                                                            <div className="text-right">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setExitAmount(totalStakedAmount)}
+                                                                    className="text-xs text-primary hover:underline"
+                                                                >
+                                                                    Max
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <Button
+                                                        onClick={handleAction}
+                                                        disabled={
+                                                            transactionLoading ||
+                                                            !exitAmount ||
+                                                            parseFloat(exitAmount) <= 0 ||
+                                                            parseFloat(exitAmount) > parseFloat(totalStakedAmount)
+                                                        }
+                                                        className="w-full bg-gray-600 text-white"
+                                                        size="lg"
+                                                    >
+                                                        {transactionLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                                                        Unstake {exitAmount ? parseFloat(exitAmount).toLocaleString(undefined, {
+                                                            minimumFractionDigits: 0,
+                                                            maximumFractionDigits: 4
+                                                        }) : '0'} {selectedYield.token.symbol}
+                                                    </Button>
+                                                </TabsContent>
+                                            </Tabs>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
