@@ -61,6 +61,14 @@ Plutus is a next-generation decentralized finance (DeFi) protocol designed to em
 
 * Access on-chain data powered by Eigen Layer for accurate and reliable blockchain analytics.
 
+### 7. **Stake Kit API**
+
+* We use Stake Kit API to allow users to stake their funds in variuos protocols over ethereum network. The staking mechanism is implemented in [this](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/client/src/pages/StakeTokens.tsx) page.
+* First we use [https://api.stakek.it/v1/yields?network=${network}](https://api.stakek.it/v1/yields?network=${network}) endpoint, to fetch all the yeilds available in the selected network and [filter](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/client/src/pages/StakeTokens.tsx#L163) those to display teilds with minimum amount less than 1
+* After that we calculate the [balance](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/client/src/pages/StakeTokens.tsx#L172) of the connected wallet using [https://api.stakek.it/v1/tokens/balances](https://api.stakek.it/v1/tokens/balances) endpint and the users [staked amount](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/client/src/pages/StakeTokens.tsx#L205) using [https://api.stakek.it/v1/${selectedYield.id}/balances](https://api.stakek.it/v1/${selectedYield.id}/balances) endpoint.
+* After that user selects theri desired action(enter or exit) and that a transaction session is creatin from the [https://api.stakek.it/v1/actions/${action}](https://api.stakek.it/v1/actions/${action}). Bases on that Stake or unstake operation will be started.
+* Then the user creates and [unsigned transaction](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/client/src/pages/StakeTokens.tsx#L324), using [https://api.stakek.it/v1/transactions/${tx.id}](https://api.stakek.it/v1/transactions/${tx.id}) endpoint. And then it is [signed and broadcasted](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/client/src/pages/StakeTokens.tsx#L372) with the help of the wallet provider and viem.
+* This signed transaction is now [submitted](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/client/src/pages/StakeTokens.tsx#L375) through the [https://api.stakek.it/v1/transactions/${tx.id}/submit_hash](https://api.stakek.it/v1/transactions/${tx.id}/submit_hash) endpoint. And then its [status is checked](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/client/src/pages/StakeTokens.tsx#L233) using the [https://api.stakek.it/v1/transactions/${txId}/status](https://api.stakek.it/v1/transactions/${txId}/status) endpoint until it is CONFIRMED or fails 30 times.
 
 ## Getting Started
 
