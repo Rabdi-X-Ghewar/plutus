@@ -85,14 +85,72 @@ async function verify(proof, publicSignals) {
       "event AttestationPosted(uint256 indexed attestationId, bytes32 indexed root)",
     ];
 
-    const abiAppContract = [
-      "function proveVoteWasCast(uint256 attestationId, uint256 root, uint256 nullifier, bytes32[] calldata merklePath, uint256 leafCount, uint256 index, uint256 voteCommitment)",
-      "event SuccessfulProofSubmission(address indexed from, uint256 voteCommitment)"
-    ];
+    const contractABI = [
+      {
+          "inputs": [
+              {
+                  "internalType": "string",
+                  "name": "_option",
+                  "type": "string"
+              }
+          ],
+          "name": "castVote",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+      },
+      {
+          "anonymous": false,
+          "inputs": [
+              {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "voter",
+                  "type": "address"
+              },
+              {
+                  "indexed": false,
+                  "internalType": "string",
+                  "name": "option",
+                  "type": "string"
+              },
+              {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "newCount",
+                  "type": "uint256"
+              }
+          ],
+          "name": "VoteCast",
+          "type": "event"
+      }
+  ];
 
-    const zkvContract = new ethers.Contract(ETH_ZKVERIFY_CONTRACT_ADDRESS, abiZkvContract, provider);
-    const appContract = new ethers.Contract(ETH_APP_CONTRACT_ADDRESS, abiAppContract, wallet);
+    
 
+   
+    const contractAddress = "0x5B8a90d70A66a8Cf29390240e5C6e84278E9AC6A";
+    const signer = wallet.connect(provider);
+
+   
+
+
+    // const zkvContract = new ethers.Contract(ETH_ZKVERIFY_CONTRACT_ADDRESS, abiZkvContract, provider);
+    const contract = new ethers.Contract(contractAddress, contractABI, signer);
+    const tx = await contract.castVote("One", {
+      gasLimit: 10000000, // Significantly higher gas limit
+  });
+  // const functionData = contract.interface.encodeFunctionData("castVote", ["One"]);
+
+  // const tx = await contract.castVote();
+  
+  
+    const receipt = await tx.wait();
+
+    return {
+      success: true,
+      transactionHash: receipt.hash
+    };
     const filterAttestationsById = zkvContract.filters.AttestationPosted(attestationId, null);
 
     // Return a promise that resolves when the EVM transaction is handled
@@ -114,14 +172,8 @@ async function verify(proof, publicSignals) {
           console.log(`\tmerkleProof: ${merkleProof}`);
           console.log(`\tnumberOfLeaves: ${numberOfLeaves}`);
           console.log(`\tleafIndex: ${leafIndex}`);
-          const txResponse = await appContract.proveVoteWasCast(
-            attestationId,
-            root,
-            nullifier,
-            merkleProof,
-            numberOfLeaves,
-            leafIndex,
-            voteCommitment
+          const txResponse = await castVote(
+            vote
           );
           const { hash } = await txResponse;
           console.log(`Tx sent to EVM, tx-hash ${hash}`);

@@ -20,8 +20,9 @@ const sidebarItems = [
     { icon: Users, label: "Chat Bot", href: "/chat-bot" },
     { icon: Fish, label: "Saved Wallets", href: "/saved-wallets" },
     { icon: Waves, label: "Governance", href: "/governance" },
-    { icon: Trophy, label: "Rewards", href: "#" },
+    { icon: Trophy, label: "Stake", href: "/stake" },
     { icon: Home, label: "Settings", href: "#" },
+
 ]
 
 export function AppSidebar() {
