@@ -4,19 +4,12 @@ import { getWalletBalance } from "../lib/fetchWalletBalance";
 import { Wallet2, CreditCard, Coins, Copy, Send, Wallet } from "lucide-react";
 import { fetchWallet, sendServerTransaction } from "../apiClient";
 import { toast } from "sonner";
-
 import { createWalletClient, custom, Hex, parseEther } from 'viem';
 import { sepolia } from 'viem/chains';
-
 import { Button } from "../components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
 import { Label } from "../components/ui/label";
 import { Input } from "../components/ui/input";
-
-
-
-
-
 
 export type WalletBalance = {
     address: string;
@@ -44,9 +37,9 @@ const getWalletIcon = (clientType: string) => {
                 </defs>
             </svg>;
         case 'privy':
-            return <Wallet2 className="w-8 h-8 text-purple-600" />;
+            return <Wallet2 className="w-8 h-8 text-primary" />;
         default:
-            return <CreditCard className="w-8 h-8 text-gray-600" />;
+            return <CreditCard className="w-8 h-8 text-muted-foreground" />;
     }
 };
 
@@ -77,8 +70,6 @@ const Profile = () => {
     const [amount, setAmount] = useState('');
     const [open, setOpen] = useState(false);
 
-
-
     useEffect(() => {
         const fetchWalletData = async () => {
             if (wallets.length > 0) {
@@ -103,7 +94,7 @@ const Profile = () => {
         const fetchServerWalletData = async () => {
             try {
                 const wallet = await fetchWallet(user?.email?.address!);
-                const serverWalletAddress = wallet.wallet.address; // Replace with actual server wallet address
+                const serverWalletAddress = wallet.wallet.address;
                 const balance = await getWalletBalance(serverWalletAddress);
                 setServerWallet({
                     address: serverWalletAddress,
@@ -115,7 +106,6 @@ const Profile = () => {
         };
 
         fetchServerWalletData();
-
         fetchWalletData();
     }, [wallets]);
 
@@ -129,13 +119,11 @@ const Profile = () => {
         }
     };
 
-
     const sendTransaction = async () => {
         if (!selectedWallet) return;
 
         try {
             if (selectedWallet.address === serverWallet?.address) {
-                // Call server wallet transaction
                 const hash = await sendServerTransaction(user?.email?.address!, destinationAddress, amount);
                 if (hash) {
                     toast.success("Server wallet transaction successful");
@@ -171,9 +159,7 @@ const Profile = () => {
                 toast.success("Transaction successful");
                 setOpen(false)
                 return hash
-
             }
-
         } catch (error) {
             console.log("Error sending transaction:", error);
             toast.error("Error sending transaction");
@@ -183,10 +169,10 @@ const Profile = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Wallet Dashboard</h1>
-                <p className="text-gray-600">Manage and monitor your connected wallets</p>
+                <h1 className="text-3xl font-bold text-foreground mb-2">Your Wallet Dashboard</h1>
+                <p className="text-muted-foreground">Manage and monitor your connected wallets</p>
             </div>
-            <div className="mb-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl shadow-lg p-6 text-white">
+            <div className="mb-8 bg-gradient-to-r from-primary to-primary/70 rounded-xl shadow-lg p-6 text-primary-foreground">
                 <h2 className="text-2xl font-bold mb-2">Server Wallet</h2>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -198,7 +184,7 @@ const Profile = () => {
                     </div>
                     {serverWallet && (
                         <button onClick={() => handleCopyAddress(serverWallet.address)}>
-                            <Copy className="w-5 h-5 text-white hover:text-gray-200 cursor-pointer" />
+                            <Copy className="w-5 h-5 text-primary-foreground hover:text-primary-foreground/90 cursor-pointer" />
                         </button>
                     )}
                 </div>
@@ -207,7 +193,7 @@ const Profile = () => {
                         <DialogTrigger asChild>
                             <Button
                                 onClick={() => setSelectedWallet(serverWallet)}
-                                className="bg-primary hover:bg-primary/90 text-white"
+                                className="bg-primary-foreground hover:bg-primary-foreground/90 text-primary mt-4"
                             >
                                 Send Transaction
                             </Button>
@@ -279,7 +265,7 @@ const Profile = () => {
                                 </Button>
                                 <Button
                                     onClick={sendTransaction}
-                                    className="bg-primary hover:bg-primary/90 text-white"
+                                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
                                 >
                                     <Send className="w-4 h-4 mr-2" />
                                     Send Transaction
@@ -290,33 +276,32 @@ const Profile = () => {
                 )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
                 {walletBalances.length > 0 ? (
                     walletBalances.map((wallet, index) => (
                         <div key={index}
-                            className="bg-white rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl border border-gray-100">
+                            className="bg-card rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl border border-border">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center space-x-3">
                                     {getWalletIcon(wallet.clientType || '')}
                                     <div>
-                                        <h3 className="font-semibold text-lg text-gray-900 capitalize">
+                                        <h3 className="font-semibold text-lg text-foreground capitalize">
                                             {getWalletName(wallet.clientType || '')} Wallet
                                         </h3>
-                                        <p className="text-sm text-gray-500 font-mono">
+                                        <p className="text-sm text-muted-foreground font-mono">
                                             {truncateAddress(wallet.address)}
                                         </p>
                                         <button onClick={() => handleCopyAddress(wallet.address)}>
-                                            <Copy className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-pointer" />
+                                            <Copy className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex items-center space-x-2 bg-gray-50 rounded-lg p-4">
-                                <Coins className="w-5 h-5 text-blue-600" />
+                            <div className="flex items-center space-x-2 bg-muted rounded-lg p-4">
+                                <Coins className="w-5 h-5 text-primary" />
                                 <div>
-                                    <p className="text-sm text-gray-600">Balance</p>
-                                    <p className="font-semibold text-lg">
+                                    <p className="text-sm text-muted-foreground">Balance</p>
+                                    <p className="font-semibold text-lg text-foreground">
                                         {wallet.balance.toFixed(4)} ETH
                                     </p>
                                 </div>
@@ -326,7 +311,7 @@ const Profile = () => {
                                 <DialogTrigger asChild>
                                     <Button
                                         onClick={() => setSelectedWallet(wallet)}
-                                        className="bg-primary hover:bg-primary/90 text-white"
+                                        className="bg-primary hover:bg-primary/90 text-primary-foreground mt-4"
                                     >
                                         Send Transaction
                                     </Button>
@@ -398,7 +383,7 @@ const Profile = () => {
                                         </Button>
                                         <Button
                                             onClick={sendTransaction}
-                                            className="bg-primary hover:bg-primary/90 text-white"
+                                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
                                         >
                                             <Send className="w-4 h-4 mr-2" />
                                             Send Transaction
@@ -406,19 +391,17 @@ const Profile = () => {
                                     </DialogFooter>
                                 </DialogContent>
                             </Dialog>
-
-
                         </div>
                     ))
                 ) : (
-                    <div className="col-span-full flex flex-col items-center justify-center p-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                        <Wallet2 className="w-12 h-12 text-gray-400 mb-3" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-1">No Wallets Connected</h3>
-                        <p className="text-gray-500">Connect a wallet to get started</p>
+                    <div className="col-span-full flex flex-col items-center justify-center p-8 bg-muted rounded-xl border-2 border-dashed border-border">
+                        <Wallet2 className="w-12 h-12 text-muted-foreground mb-3" />
+                        <h3 className="text-lg font-medium text-foreground mb-1">No Wallets Connected</h3>
+                        <p className="text-muted-foreground">Connect a wallet to get started</p>
                     </div>
                 )}
             </div>
-        </div >
+        </div>
     );
 };
 

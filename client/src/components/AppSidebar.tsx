@@ -22,15 +22,14 @@ const sidebarItems = [
     { icon: Waves, label: "Governance", href: "/governance" },
     { icon: Trophy, label: "Stake", href: "/stake" },
     { icon: Home, label: "Settings", href: "#" },
-
 ]
 
 export function AppSidebar() {
     const { logout, user, linkWallet } = usePrivy();
     const { wallets } = useWallets()
     return (
-        <Sidebar collapsible="icon" className="border-r z-50 fixed h-screen w-64 bg-white ">
-            <SidebarHeader className="border-b px-2 py-4">
+        <Sidebar collapsible="icon" className="border-border bg-background fixed h-screen w-64 z-50">
+            <SidebarHeader className="border-border px-2 py-4">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild size="lg">
@@ -38,7 +37,7 @@ export function AppSidebar() {
                                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                                     <span className="text-lg font-bold text-primary-foreground">P</span>
                                 </div>
-                                <span className="font-semibold text-xl">Pluto</span>
+                                <span className="font-semibold text-xl text-foreground">Pluto</span>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -49,7 +48,7 @@ export function AppSidebar() {
                     {sidebarItems.map((item) => (
                         <SidebarMenuItem key={item.label}>
                             <SidebarMenuButton asChild tooltip={item.label}>
-                                <Link to={item.href}>
+                                <Link to={item.href} className="text-muted-foreground hover:text-foreground">
                                     <item.icon className="h-5 w-5" />
                                     <span>{item.label}</span>
                                 </Link>
@@ -64,7 +63,7 @@ export function AppSidebar() {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <SidebarMenuButton asChild tooltip="Profile">
-                                    <button className="flex items-center">
+                                    <button className="flex items-center text-muted-foreground hover:text-foreground">
                                         <UserCircle className="h-5 w-5" />
                                         <span>Profile</span>
                                     </button>
@@ -79,13 +78,13 @@ export function AppSidebar() {
                                         <span className="font-semibold">Connected Wallets:</span>
                                         {wallets.length > 0 ? (
                                             wallets.map((wallet, index) => (
-                                                <span key={index} className="text-sm text-gray-600">
+                                                <span key={index} className="text-sm text-muted-foreground">
                                                     {wallet.walletClientType} -
                                                     {wallet.address}
                                                 </span>
                                             ))
                                         ) : (
-                                            <span className="text-sm text-gray-600">No wallets connected</span>
+                                            <span className="text-sm text-muted-foreground">No wallets connected</span>
                                         )}
                                     </div>
                                 </DropdownMenuItem>
@@ -99,8 +98,8 @@ export function AppSidebar() {
                         </DropdownMenu>
                     </SidebarMenuItem>
                 </SidebarMenu>
-            </div>            <SidebarRail />
+            </div>
+            <SidebarRail />
         </Sidebar>
     )
 }
-

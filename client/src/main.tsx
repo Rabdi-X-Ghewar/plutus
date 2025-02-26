@@ -16,34 +16,6 @@ const solanaConnectors = toSolanaWalletConnectors({
   shouldAutoConnect: true,
 });
 
-const openCampusChain = defineChain({
-  id: 656476,
-  network: "Open Campus Codex",
-  name: "Open Campus Codext",
-  nativeCurrency: {
-    name: "EDU",
-    symbol: "EDU",
-    decimals: 18,
-  },
-  rpcUrls: {
-    public: {
-      http: ["https://rpc.open-campus-codex.gelato.digital"],
-    },
-    default: {
-      http: ["https://rpc.open-campus-codex.gelato.digital"],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: "Block Scout",
-      url: "https://opencampus-codex.blockscout.com/",
-    },
-  },
-  contracts: {
-  },
-  testnet: true,
-});
-
 
 const opts = {
   redirectUri: 'http://localhost:5173/redirect',
@@ -54,7 +26,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
       <PrivyProvider
-        appId='cm6kt4h9p002lzv9jj5zvecdr'
+        appId='cm7loig14030by9g896wob3gm'
 
         config={{
           externalWallets: {
@@ -70,8 +42,6 @@ createRoot(document.getElementById('root')!).render(
               'metamask', 'coinbase_wallet', 'rainbow', 'wallet_connect', 'phantom', 'safe', 'detected_wallets',
             ]
           },
-          defaultChain: openCampusChain,
-          supportedChains: [openCampusChain],
         }}
       >
         <OCConnect opts={opts} sandboxMode={true}>

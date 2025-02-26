@@ -7,23 +7,11 @@ import { createWalletClient, custom, Hex, parseEther } from 'viem';
 import { sepolia } from 'viem/chains';
 import { useOCAuth } from '@opencampus/ocid-connect-js';
 
-
-// const items = [
-//     { title: "All", href: "#" },
-//     { title: "Theatre", href: "#" },
-//     { title: "Bars", href: "#" },
-//     { title: "Clubs", href: "#" },
-//     { title: "Fishing", href: "#" },
-//     { title: "Sea & Beach", href: "#" },
-//     { title: "Sports", href: "#" },
-// ]
-
 export function MainNav() {
     const { linkWallet } = usePrivy();
     const { wallets } = useWallets()
     const { createWallet } = useCreateWallet();
     const { isInitialized, authState, ocAuth, OCId, ethAddress } = useOCAuth();
-
 
     const sign = async () => {
         const wallet = wallets.find(wallet => wallet.walletClientType === 'privy');
@@ -62,7 +50,6 @@ export function MainNav() {
         console.log(hash);
     }
 
-
     const handleOCLogin = () => {
         if (ocAuth) {
             ocAuth.signInWithRedirect({ state: 'opencampus-student' });
@@ -70,35 +57,19 @@ export function MainNav() {
     };
 
     const handleOCLogout = () => {
-
         localStorage.removeItem('oc-token-storage');
         window.location.reload();
     };
 
-
     return (
-        <nav className="flex justify-between w-full px-2 ">
+        <nav className="flex justify-between w-full px-2">
             <div className="flex items-center space-x-6">
-                {/* {items.map((item) => (
-                    <Link
-                        key={item.title}
-                        to={item.href}
-                        className={cn(
-                            "text-sm font-medium transition-colors hover:text-primary",
-                            item.title === "All" ? "text-primary" : "text-muted-foreground",
-                        )}
-                    >
-                        {item.title}
-                    </Link>
-                ))} */}
-
             </div>
 
             <div className="flex items-center space-x-4">
-                {/* OCConnect Menu */}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <button className="flex items-center space-x-2">
+                        <button className="flex items-center space-x-2 text-muted-foreground hover:text-foreground">
                             <UserCircle />
                             <span>Account</span>
                         </button>
@@ -108,18 +79,18 @@ export function MainNav() {
                             <>
                                 {authState.error ? (
                                     <DropdownMenuItem>
-                                        <span className="text-red-500">Error: {authState.error.message}</span>
+                                        <span className="text-destructive">Error: {authState.error.message}</span>
                                     </DropdownMenuItem>
                                 ) : authState.isAuthenticated ? (
                                     <>
                                         <DropdownMenuItem>
                                             <div className="flex flex-col space-y-1">
                                                 <span className="font-semibold">OCConnect ID:</span>
-                                                <span className="text-sm text-gray-600">{OCId}</span>
+                                                <span className="text-sm text-muted-foreground">{OCId}</span>
                                                 {ethAddress && (
                                                     <>
                                                         <span className="font-semibold">ETH Address:</span>
-                                                        <span className="text-sm text-gray-600">{ethAddress}</span>
+                                                        <span className="text-sm text-muted-foreground">{ethAddress}</span>
                                                     </>
                                                 )}
                                             </div>
@@ -137,11 +108,10 @@ export function MainNav() {
                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
-
             </div>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <button className="flex items-center space-x-2">
+                    <button className="flex items-center space-x-2 text-muted-foreground hover:text-foreground">
                         <WalletIcon />
                         <span>Wallets</span>
                     </button>
@@ -152,13 +122,13 @@ export function MainNav() {
                             <span className="font-semibold">Connected Wallets:</span>
                             {wallets.length > 0 ? (
                                 wallets.map((wallet, index) => (
-                                    <span key={index} className="text-sm text-gray-600">
+                                    <span key={index} className="text-sm text-muted-foreground">
                                         {wallet.walletClientType} -
                                         {wallet.address}
                                     </span>
                                 ))
                             ) : (
-                                <span className="text-sm text-gray-600">No wallets connected</span>
+                                <span className="text-sm text-muted-foreground">No wallets connected</span>
                             )}
                         </div>
                     </DropdownMenuItem>
@@ -169,24 +139,14 @@ export function MainNav() {
                     <DropdownMenuItem onClick={createWallet}>
                         <Button variant="outline" className="w-full">Create Wallet</Button>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={async () => {
-
-                        sign();
-                    }}>
-                        <Button>
-                            Sign
-                        </Button>
+                    <DropdownMenuItem onClick={sign}>
+                        <Button className="w-full">Sign</Button>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={async () => {
-                        transaction();
-                    }}>
-                        <Button>
-                            Send
-                        </Button>
+                    <DropdownMenuItem onClick={transaction}>
+                        <Button className="w-full">Send</Button>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         </nav>
     )
 }
-

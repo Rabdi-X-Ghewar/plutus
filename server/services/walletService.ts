@@ -7,11 +7,11 @@ import { User } from "../models/User";
 import { createPolicy } from "./policyService";
 
 const privy = new PrivyClient(
-    'cm6m2x54x009tkqmmiupwl2eg',
-    '5x9hnFZ7NJhVhZkAidxABCfcewb6VQENdtHEZyPvcqwUcwRsEveVfpBc9svYD2i17ZKLKPKCyEk53HEQtV9s59ZU',
+    'cm7loig14030by9g896wob3gm',
+    '3Ghd8gz89Aanwp4fSoiPqiWYw6rAYRXCfem25wuqcwgN8Cc8gGNVUGWU6giG6FthsGGWsHyukniMtHGXSX4GuGKp',
     {
         walletApi: {
-            authorizationPrivateKey: 'wallet-auth:MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgiNhlIWPT9yr/XRmb3qgssVWSr91E4XX8X62HbPVAMi+hRANCAARx5wcOumvPh0Yweqsum+7NvlQoTC2qL1XoCio+JxBe8nL3fB4KorklityyACRqAdnd7sXoBr414dJbXBB5rBgm'
+            authorizationPrivateKey: 'wallet-auth:MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgkEAqnsWFbsS4CbsY0yKEi8S8b+V8hycoRECjQ7+naC+hRANCAARnXNsJawU/ACZqh+enKSH0KIsymEZQ8fKW6J55QOyB59ezDqg8VF+OH/JeiwN0JvK8cdSyneNRx5v9CNfAADxC'
         }
     }
 );

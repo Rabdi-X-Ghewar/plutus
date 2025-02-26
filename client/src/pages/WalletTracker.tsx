@@ -28,10 +28,10 @@ const WalletTracker = () => {
     const [activeTab, setActiveTab] = useState<"received" | "sent">("received");
     const [currentPageReceived, setCurrentPageReceived] = useState<number>(1);
     const [currentPageSent, setCurrentPageSent] = useState<number>(1);
-    const PAGE_SIZE = 5; // Number of transactions per page
-    const API_KEY = "9BVI76HUXR3GAFJ1SXBMIN9TXVS1A1Q28H"; // Replace with your Etherscan API key
+    const PAGE_SIZE = 5;
+    const API_KEY = "9BVI76HUXR3GAFJ1SXBMIN9TXVS1A1Q28H";
 
-    // Fetch the current ETH price in USD using CoinGecko API
+    // Existing fetch functions and handlers remain the same
     const fetchEthPrice = async () => {
         try {
             const response = await axios.get(
@@ -44,10 +44,9 @@ const WalletTracker = () => {
     };
 
     useEffect(() => {
-        fetchEthPrice(); // Fetch ETH price on component mount
+        fetchEthPrice();
     }, []);
 
-    // Fetch transactions for the wallet address
     const fetchWalletTransactions = async (
         address: string,
         page: number,
@@ -86,20 +85,17 @@ const WalletTracker = () => {
             return;
         }
 
-        // Reset states when submitting a new wallet address
         setReceivedTransactions([]);
         setSentTransactions([]);
         setCurrentPageReceived(1);
         setCurrentPageSent(1);
 
-        // Fetch initial transactions for both tabs
         fetchWalletTransactions(walletAddress, 1, "received");
         fetchWalletTransactions(walletAddress, 1, "sent");
     };
 
-    // Function to format timestamp into local date, time, and timezone
     const formatDate = (timestamp: string): string => {
-        const date = new Date(parseInt(timestamp, 10) * 1000); // Convert Unix timestamp to milliseconds
+        const date = new Date(parseInt(timestamp, 10) * 1000);
         const options: Intl.DateTimeFormatOptions = {
             year: "numeric",
             month: "short",
@@ -111,12 +107,10 @@ const WalletTracker = () => {
         return new Intl.DateTimeFormat(undefined, options).format(date);
     };
 
-    // Truncate wallet addresses for better readability
     const truncateAddress = (address: string): string => {
         return `${address.slice(0, 6)}...${address.slice(-4)}`;
     };
 
-    // Infinite scroll logic
     useEffect(() => {
         const handleScroll = () => {
             if (
@@ -136,7 +130,6 @@ const WalletTracker = () => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, [loading, activeTab]);
 
-    // Fetch more transactions when the page changes
     useEffect(() => {
         if (currentPageReceived > 1 && walletAddress.trim()) {
             fetchWalletTransactions(walletAddress, currentPageReceived, "received");
@@ -149,39 +142,39 @@ const WalletTracker = () => {
         }
     }, [currentPageSent]);
 
-    // Transaction card component
     const TransactionCard = ({ tx, type }: { tx: Transaction; type: "received" | "sent" }) => {
         const ethValue = parseFloat(tx.value) / 1e18;
         const usdValue = ethPrice ? (ethValue * ethPrice).toFixed(2) : "N/A";
         const formattedDate = formatDate(tx.timeStamp);
 
         return (
-            <Card className="p-4 bg-white shadow-sm rounded-lg">
+            <Card className="p-4 bg-card text-card-foreground border border-border/20">
                 <div className="flex flex-col space-y-2">
                     <div className="flex items-center space-x-2">
                         {type === "received" ? (
-                            <ArrowDownLeft className="text-green-500" />
+                            <ArrowDownLeft className="text-primary" />
                         ) : (
-                            <ArrowUpRight className="text-red-500" />
+                            <ArrowUpRight className="text-destructive" />
                         )}
-                        <Badge variant={type === "received" ? "default" : "destructive"}>
+                        <Badge variant={type === "received" ? "default" : "destructive"} 
+                               className={type === "received" ? "bg-primary text-primary-foreground" : ""}>
                             {type === "received" ? "Received" : "Sent"}
                         </Badge>
                     </div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                         {type === "received" ? "From" : "To"}:{" "}
-                        <span className="text-gray-900">{truncateAddress(type === "received" ? tx.from : tx.to)}</span>
+                        <span className="text-foreground">{truncateAddress(type === "received" ? tx.from : tx.to)}</span>
                     </p>
-                    <p className="text-sm text-gray-500">Date & Time: {formattedDate}</p>
-                    <p className="text-sm text-gray-600">
-                        Value: <span className="font-bold text-indigo-600">{ethValue.toFixed(4)} ETH (${usdValue})</span>
+                    <p className="text-sm text-muted-foreground">Date & Time: {formattedDate}</p>
+                    <p className="text-sm text-muted-foreground">
+                        Value: <span className="font-bold text-primary">{ethValue.toFixed(4)} ETH (${usdValue})</span>
                     </p>
-                    <p className="text-sm text-gray-500">Block: {tx.blockNumber}</p>
+                    <p className="text-sm text-muted-foreground">Block: {tx.blockNumber}</p>
                     <a
                         href={`https://etherscan.io/tx/${tx.hash}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-indigo-600 hover:underline flex items-center space-x-1"
+                        className="text-primary hover:text-primary/80 flex items-center space-x-1"
                     >
                         <ExternalLink className="h-4 w-4" />
                         <span>View on Etherscan</span>
@@ -192,15 +185,17 @@ const WalletTracker = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-indigo-100">
-            <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl overflow-hidden">
-                <CardHeader className="bg-indigo-600 text-white rounded-t-xl">
-                    <CardTitle className="text-center text-2xl font-bold">Ethereum Wallet Tracker</CardTitle>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+            <Card className="w-full max-w-2xl border-border/20">
+                <CardHeader className="bg-card border-b border-border/20">
+                    <CardTitle className="text-center text-2xl font-bold text-card-foreground">
+                        Ethereum Wallet Tracker
+                    </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label htmlFor="walletAddress" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="walletAddress" className="block text-sm font-medium text-foreground">
                                 Enter Wallet Address
                             </label>
                             <Input
@@ -208,10 +203,10 @@ const WalletTracker = () => {
                                 placeholder="e.g., 0xC2d2D05F30Be4f649Dcd9Db6f2D045bE4A3D9ebF"
                                 value={walletAddress}
                                 onChange={(e) => setWalletAddress(e.target.value)}
-                                className="h-12"
+                                className="h-12 bg-input text-foreground"
                             />
                         </div>
-                        <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700" disabled={loading}>
+                        <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading}>
                             {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -231,32 +226,32 @@ const WalletTracker = () => {
                     )}
 
                     {ethPrice && (
-                        <p className="text-sm text-gray-600">
-                            Current ETH Price: <span className="font-bold">${ethPrice.toFixed(2)}</span>
+                        <p className="text-sm text-muted-foreground">
+                            Current ETH Price: <span className="font-bold text-foreground">${ethPrice.toFixed(2)}</span>
                         </p>
                     )}
 
                     {(receivedTransactions.length > 0 || sentTransactions.length > 0) && (
                         <Tabs defaultValue="received" className="w-full">
-                            <TabsList className="grid w-full grid-cols-2">
+                            <TabsList className="grid w-full grid-cols-2 bg-muted">
                                 <TabsTrigger
                                     value="received"
                                     onClick={() => setActiveTab("received")}
-                                    className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
+                                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                                 >
                                     Received
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="sent"
                                     onClick={() => setActiveTab("sent")}
-                                    className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
+                                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                                 >
                                     Sent
                                 </TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="received">
-                                <ScrollArea className="h-[400px] scroll-area">
+                                <ScrollArea className="h-[400px]">
                                     <div className="space-y-4">
                                         {receivedTransactions.map((tx, index) => (
                                             <TransactionCard key={index} tx={tx} type="received" />
@@ -266,7 +261,7 @@ const WalletTracker = () => {
                             </TabsContent>
 
                             <TabsContent value="sent">
-                                <ScrollArea className="h-[400px] scroll-area">
+                                <ScrollArea className="h-[400px]">
                                     <div className="space-y-4">
                                         {sentTransactions.map((tx, index) => (
                                             <TransactionCard key={index} tx={tx} type="sent" />
@@ -277,10 +272,9 @@ const WalletTracker = () => {
                         </Tabs>
                     )}
 
-                    {/* Loading indicator for infinite scroll */}
                     {loading && (
                         <div className="flex justify-center py-4">
-                            <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
+                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
                         </div>
                     )}
                 </CardContent>

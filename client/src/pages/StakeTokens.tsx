@@ -422,21 +422,21 @@ const StakingPage: React.FC = () => {
 
     if (!authenticated) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <Card className="w-full max-w-md">
+            <div className="flex items-center justify-center min-h-screen bg-background">
+                <Card className="w-full max-w-md bg-card">
                     <CardContent className="p-6">
-                        <p className="text-center">Please connect your wallet to continue</p>
+                        <p className="text-center text-card-foreground">Please connect your wallet to continue</p>
                     </CardContent>
                 </Card>
             </div>
         );
     }
-    console.log("Total Staked Amount: ", totalStakedAmount);
+
     return (
-        <div className=" min-h-screen bg-gradient-to-b from-background to-muted p-4 sm:p-8 ">
+        <div className="min-h-screen bg-background p-4 sm:p-8">
             <div className="max-w-6xl mx-auto space-y-8">
                 <div className="flex flex-col gap-2">
-                    <h1 className="text-4xl font-bold tracking-tight">Staking Dashboard</h1>
+                    <h1 className="text-4xl font-bold tracking-tight text-foreground">Staking Dashboard</h1>
                     <p className="text-muted-foreground">Earn rewards by staking your assets</p>
                 </div>
 
@@ -449,9 +449,9 @@ const StakingPage: React.FC = () => {
 
                 <div className="grid gap-6 md:grid-cols-[300px_1fr]">
                     <div className="space-y-6">
-                        <Card className="h-fit bg-gray-700">
+                        <Card className="h-fit bg-card">
                             <CardHeader>
-                                <CardTitle className='text-white'>Network</CardTitle>
+                                <CardTitle className="text-card-foreground">Network</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <Select
@@ -463,7 +463,7 @@ const StakingPage: React.FC = () => {
                                         setExitAmount("");
                                     }}
                                 >
-                                    <SelectTrigger className="w-full">
+                                    <SelectTrigger className="w-full bg-secondary text-secondary-foreground">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -478,9 +478,9 @@ const StakingPage: React.FC = () => {
                         </Card>
 
                         {selectedYield && parseFloat(totalStakedAmount) > 0 && (
-                            <Card className='bg-gray-700'>
+                            <Card className="bg-card">
                                 <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-white" >
+                                    <CardTitle className="flex items-center gap-2 text-card-foreground">
                                         <BarChart3 className="h-5 w-5" />
                                         Your Staked Position
                                     </CardTitle>
@@ -488,8 +488,8 @@ const StakingPage: React.FC = () => {
                                 <CardContent className="space-y-4">
                                     <div className="space-y-2">
                                         <div className="flex justify-between">
-                                            <span className="text-gray-300">Total Staked</span>
-                                            <span className="font-medium text-gray-200">
+                                            <span className="text-muted-foreground">Total Staked</span>
+                                            <span className="font-medium text-card-foreground">
                                                 {parseFloat(totalStakedAmount).toLocaleString(undefined, {
                                                     minimumFractionDigits: 0,
                                                     maximumFractionDigits: 4
@@ -497,12 +497,12 @@ const StakingPage: React.FC = () => {
                                             </span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-300">Current APY</span>
-                                            <span className="font-medium text-green-600">{(selectedYield.apy * 100).toFixed(2)}%</span>
+                                            <span className="text-muted-foreground">Current APY</span>
+                                            <span className="font-medium text-primary">{(selectedYield.apy * 100).toFixed(2)}%</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-300">Est. Annual Reward</span>
-                                            <span className="font-medium text-green-600">
+                                            <span className="text-muted-foreground">Est. Annual Reward</span>
+                                            <span className="font-medium text-primary">
                                                 {estimatedAnnualReward.toLocaleString(undefined, {
                                                     minimumFractionDigits: 0,
                                                     maximumFractionDigits: 4
@@ -510,11 +510,11 @@ const StakingPage: React.FC = () => {
                                             </span>
                                         </div>
                                     </div>
-                                    <Separator />
+                                    <Separator className="bg-border" />
                                     <div>
                                         <Button
                                             variant="outline"
-                                            className="w-full"
+                                            className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/80"
                                             onClick={() => {
                                                 setAction('exit');
                                                 setTimeout(() => {
@@ -531,41 +531,40 @@ const StakingPage: React.FC = () => {
                         )}
                     </div>
 
-                    <div className="space-y-6 rounded-xl">
+                    <div className="space-y-6">
                         {loading ? (
-                            <Card className=''>
+                            <Card className="bg-card">
                                 <CardContent className="flex items-center justify-center min-h-[300px]">
-                                    <Loader2 className="h-8 w-8 animate-spin" />
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                 </CardContent>
                             </Card>
                         ) : (
-                            <Card className='bg-gray-700 rounded-xl' >
-                                <CardHeader className='bg-gray-700'>
-                                    <CardTitle className='text-white'>Yield Opportunities</CardTitle>
-                                    <CardDescription className='text-gray-300'>Select an opportunity to start staking</CardDescription>
+                            <Card className="bg-card">
+                                <CardHeader>
+                                    <CardTitle className="text-card-foreground">Yield Opportunities</CardTitle>
+                                    <CardDescription>Select an opportunity to start staking</CardDescription>
                                 </CardHeader>
-                                <CardContent className="">
+                                <CardContent>
                                     {yields.length > 0 ? (
-                                            <Select
-                                                value={selectedYield?.id || ""}
-                                                onValueChange={(value) => {
-                                                    setSelectedYield(yields.find(y => y.id === value) || null);
-                                                    setAmount("");
-                                                    setExitAmount("");
-                                                }}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a yield opportunity" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {yields.map((y) => (
-                                                        <SelectItem key={y.id} value={y.id}>
-                                                            {y.metadata.name} - APY: {(y.apy * 100).toFixed(2)}%
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-
+                                        <Select
+                                            value={selectedYield?.id || ""}
+                                            onValueChange={(value) => {
+                                                setSelectedYield(yields.find(y => y.id === value) || null);
+                                                setAmount("");
+                                                setExitAmount("");
+                                            }}
+                                        >
+                                            <SelectTrigger className="bg-secondary text-secondary-foreground">
+                                                <SelectValue placeholder="Select a yield opportunity" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {yields.map((y) => (
+                                                    <SelectItem key={y.id} value={y.id}>
+                                                        {y.metadata.name} - APY: {(y.apy * 100).toFixed(2)}%
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     ) : (
                                         <p className="text-center text-muted-foreground">
                                             No yield opportunities available for this network.
@@ -573,13 +572,13 @@ const StakingPage: React.FC = () => {
                                     )}
 
                                     {selectedYield && (
-                                        <div className="space-y-6">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
-                                                <div className="flex items-center gap-3 p-4 rounded-lg">
-                                                    <Wallet className="h-5 w-5 text-white " />
+                                        <div className="space-y-6 mt-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary">
+                                                    <Wallet className="h-5 w-5 text-primary" />
                                                     <div>
-                                                        <p className="text-sm font-medium">Available Balance</p>
-                                                        <p className="text-2xl font-bold">
+                                                        <p className="text-sm font-medium text-secondary-foreground">Available Balance</p>
+                                                        <p className="text-2xl font-bold text-secondary-foreground">
                                                             {parseFloat(userBalance).toLocaleString(undefined, {
                                                                 minimumFractionDigits: 0,
                                                                 maximumFractionDigits: 4
@@ -587,34 +586,40 @@ const StakingPage: React.FC = () => {
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-3 p-4 rounded-lg">
-                                                    <Percent className="h-5 w-5 text-white" />
+                                                <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary">
+                                                    <Percent className="h-5 w-5 text-primary" />
                                                     <div>
-                                                        <p className="text-sm font-medium">Current APY</p>
-                                                        <p className="text-2xl font-bold">{(selectedYield.apy * 100).toFixed(2)}%</p>
+                                                        <p className="text-sm font-medium text-secondary-foreground">Current APY</p>
+                                                        <p className="text-2xl font-bold text-primary">{(selectedYield.apy * 100).toFixed(2)}%</p>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <Separator />
+                                            <Separator className="bg-border" />
 
                                             <div className="space-y-2">
-                                                <h3 className="font-medium text-white">Staking Information</h3>
+                                                <h3 className="font-medium text-card-foreground">Staking Information</h3>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                                                    <div className="p-3 bg-white rounded-lg">
+                                                    <div className="p-3 bg-secondary rounded-lg">
                                                         <p className="text-sm text-muted-foreground">Minimum Stake</p>
-                                                        <p className="font-medium">{selectedYield.args.enter.args.amount.minimum} {selectedYield.token.symbol}</p>
+                                                        <p className="font-medium text-secondary-foreground">
+                                                            {selectedYield.args.enter.args.amount.minimum} {selectedYield.token.symbol}
+                                                        </p>
                                                     </div>
                                                     {selectedYield.metadata.cooldownPeriod && (
-                                                        <div className="p-3 bg-white rounded-lg">
+                                                        <div className="p-3 bg-secondary rounded-lg">
                                                             <p className="text-sm text-muted-foreground">Cooldown Period</p>
-                                                            <p className="font-medium">{selectedYield.metadata.cooldownPeriod.days} days</p>
+                                                            <p className="font-medium text-secondary-foreground">
+                                                                {selectedYield.metadata.cooldownPeriod.days} days
+                                                            </p>
                                                         </div>
                                                     )}
                                                     {selectedYield.metadata.withdrawPeriod && (
-                                                        <div className="p-3 bg-muted/30 rounded-lg">
+                                                        <div className="p-3 bg-secondary rounded-lg">
                                                             <p className="text-sm text-muted-foreground">Withdraw Period</p>
-                                                            <p className="font-medium">{selectedYield.metadata.withdrawPeriod.days} days</p>
+                                                            <p className="font-medium text-secondary-foreground">
+                                                                {selectedYield.metadata.withdrawPeriod.days} days
+                                                            </p>
                                                         </div>
                                                     )}
                                                 </div>
@@ -625,8 +630,8 @@ const StakingPage: React.FC = () => {
                                                 onValueChange={(v) => setAction(v as ActionType)}
                                                 className="w-full"
                                             >
-                                                <TabsList className="grid w-full grid-cols-2">
-                                                    <TabsTrigger value="enter">
+                                                <TabsList className="grid w-full grid-cols-2 bg-secondary">
+                                                    <TabsTrigger value="enter" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                                                         <ArrowUpCircle className="h-4 w-4 mr-2" />
                                                         Stake
                                                     </TabsTrigger>
@@ -634,6 +639,7 @@ const StakingPage: React.FC = () => {
                                                         id="unstake-tab"
                                                         value="exit"
                                                         disabled={parseFloat(totalStakedAmount) <= 0}
+                                                        className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                                                     >
                                                         <ArrowDownCircle className="h-4 w-4 mr-2" />
                                                         Unstake
@@ -641,9 +647,10 @@ const StakingPage: React.FC = () => {
                                                 </TabsList>
                                                 <TabsContent value="enter" className="space-y-4">
                                                     <div className="space-y-2">
-                                                        <label htmlFor="stake-amount" className="text-sm text-white font-medium">Amount to Stake</label>
+                                                        <label htmlFor="stake-amount" className="text-sm text-card-foreground font-medium">
+                                                            Amount to Stake
+                                                        </label>
                                                         <Input
-                                                        className='bg-white'
                                                             id="stake-amount"
                                                             type="number"
                                                             value={amount}
@@ -651,6 +658,7 @@ const StakingPage: React.FC = () => {
                                                             placeholder={`Minimum ${selectedYield.args.enter.args.amount.minimum}`}
                                                             min={selectedYield.args.enter.args.amount.minimum}
                                                             step="any"
+                                                            className="bg-secondary text-secondary-foreground"
                                                         />
                                                         {userBalance !== "0" && (
                                                             <div className="text-right">
@@ -673,7 +681,7 @@ const StakingPage: React.FC = () => {
                                                             parseFloat(amount) < selectedYield.args.enter.args.amount.minimum ||
                                                             parseFloat(amount) > parseFloat(userBalance)
                                                         }
-                                                        className="w-full bg-gray-600"
+                                                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                                                         size="lg"
                                                     >
                                                         {transactionLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
@@ -685,17 +693,19 @@ const StakingPage: React.FC = () => {
                                                 </TabsContent>
                                                 <TabsContent value="exit" className="space-y-4">
                                                     <div className="space-y-2">
-                                                        <label htmlFor="unstake-amount" className="text-sm text-white font-medium">Amount to Unstake</label>
+                                                        <label htmlFor="unstake-amount" className="text-sm text-card-foreground font-medium">
+                                                            Amount to Unstake
+                                                        </label>
                                                         <Input
-                                                            className='bg-white'
                                                             id="unstake-amount"
                                                             type="number"
                                                             value={exitAmount}
                                                             onChange={(e) => setExitAmount(e.target.value)}
-                                                            placeholder={`Maximum 0.2`}
+                                                            placeholder={`Maximum ${totalStakedAmount}`}
                                                             min={selectedYield.args.exit?.args.amount.minimum || 0}
                                                             max={totalStakedAmount}
                                                             step="any"
+                                                            className="bg-secondary text-secondary-foreground"
                                                         />
                                                         {totalStakedAmount !== "0" && (
                                                             <div className="text-right">
@@ -717,7 +727,7 @@ const StakingPage: React.FC = () => {
                                                             parseFloat(exitAmount) <= 0 ||
                                                             parseFloat(exitAmount) > parseFloat(totalStakedAmount)
                                                         }
-                                                        className="w-full bg-gray-600 text-white"
+                                                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                                                         size="lg"
                                                     >
                                                         {transactionLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
