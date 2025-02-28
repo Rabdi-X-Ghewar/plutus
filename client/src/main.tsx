@@ -7,7 +7,6 @@ import { PrivyProvider } from '@privy-io/react-auth'
 import { toSolanaWalletConnectors } from '@privy-io/react-auth/solana';
 import ErrorBoundary from './ErrorBoundary.tsx'
 import { Toaster } from 'sonner'
-import { defineChain } from "viem";
 import { OCConnect } from '@opencampus/ocid-connect-js'
 import { BrowserRouter } from 'react-router'
 

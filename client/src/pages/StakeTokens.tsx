@@ -150,8 +150,8 @@ const StakingPage: React.FC = () => {
             }
 
             const data = await response.json();
-            const filteredYields = filterYields(data.data);
-            setYields(filteredYields);
+            // const filteredYields = filterYields(data.data);
+            setYields(data.data);
         } catch (err) {
             setError(`Failed to fetch yield opportunities: ${err instanceof Error ? err.message : 'Unknown error'}`);
             toast.error("Couldn't load yield opportunities. Please try again.");
@@ -160,14 +160,14 @@ const StakingPage: React.FC = () => {
         }
     };
 
-    const filterYields = (allYields: YieldOpportunity[]) => {
-        return allYields
-            .filter((y) => {
-                const hasZeroMinimum = y.args?.enter?.args?.amount?.minimum < 1;
-                return y.status.enter && y.status.exit && hasZeroMinimum;
-            })
-            .sort((a, b) => b.apy - a.apy);
-    };
+    // const filterYields = (allYields: YieldOpportunity[]) => {
+    //     return allYields
+    //         .filter((y) => {
+    //             const hasZeroMinimum = y.args?.enter?.args?.amount?.minimum < 1;
+    //             return y.status.enter && y.status.exit && hasZeroMinimum;
+    //         })
+    //         .sort((a, b) => b.apy - a.apy);
+    // };
 
     const fetchUserBalance = async () => {
         if (!authenticated || !wallet?.address || !selectedYield) return;
@@ -702,7 +702,7 @@ const StakingPage: React.FC = () => {
                                                             value={exitAmount}
                                                             onChange={(e) => setExitAmount(e.target.value)}
                                                             placeholder={`Maximum ${totalStakedAmount}`}
-                                                            min={selectedYield.args.exit?.args.amount.minimum || 0}
+                                                            min={selectedYield?.args.exit?.args?.amount?.minimum || 0}
                                                             max={totalStakedAmount}
                                                             step="any"
                                                             className="bg-secondary text-secondary-foreground"
