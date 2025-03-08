@@ -1,20 +1,43 @@
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useEffect, useState } from "react";
-import { getWalletBalance } from "../lib/fetchWalletBalance";
-import { Wallet2, CreditCard, Coins, Copy, Send, Wallet } from "lucide-react";
+import { getWalletBalance, SUPPORTED_NETWORKS, NetworkKey } from "../lib/fetchWalletBalance";
+import { Wallet2, CreditCard, Coins, Copy, Send, Wallet, Globe } from "lucide-react";
 import { fetchWallet, sendServerTransaction } from "../apiClient";
 import { toast } from "sonner";
 import { createWalletClient, custom, Hex, parseEther } from 'viem';
-import { sepolia } from 'viem/chains';
+import {
+    mainnet,
+    sepolia,
+    goerli,
+    polygonMumbai,
+    polygon,
+    arbitrum,
+    optimism,
+    holesky
+} from 'viem/chains';
 import { Button } from "../components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
 import { Label } from "../components/ui/label";
 import { Input } from "../components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { ethers } from "ethers";
 
 export type WalletBalance = {
     address: string;
     clientType?: string;
     balance: number;
+    network?: NetworkKey;
+};
+
+const CHAIN_MAP = {
+    ethereum: mainnet,
+    sepolia: sepolia,
+    goerli: goerli,
+    mumbai: polygonMumbai,
+    polygon: polygon,
+    arbitrum: arbitrum,
+    optimism: optimism,
+    holesky: holesky
 };
 
 const getWalletIcon = (clientType: string) => {
@@ -64,11 +87,13 @@ const Profile = () => {
     const { wallets } = useWallets();
     const { user } = usePrivy();
     const [walletBalances, setWalletBalances] = useState<WalletBalance[]>([]);
-    const [serverWallet, setServerWallet] = useState<{ address: string; balance: number } | null>(null);
+    const [serverWallet, setServerWallet] = useState<{ address: string; balance: number; network?: NetworkKey } | null>(null);
     const [selectedWallet, setSelectedWallet] = useState<WalletBalance | undefined>(undefined);
     const [destinationAddress, setDestinationAddress] = useState('');
     const [amount, setAmount] = useState('');
     const [open, setOpen] = useState(false);
+    const [selectedNetwork, setSelectedNetwork] = useState<NetworkKey>('sepolia');
+
 
     useEffect(() => {
         const fetchWalletData = async () => {
@@ -76,11 +101,12 @@ const Profile = () => {
                 try {
                     const balances = await Promise.all(
                         wallets.map(async (wallet) => {
-                            const balance = await getWalletBalance(wallet.address);
+                            const balanceResult = await getWalletBalance(wallet.address, selectedNetwork);
                             return {
                                 address: wallet.address,
                                 clientType: wallet.walletClientType,
-                                balance: balance ? parseFloat(balance) : 0
+                                balance: balanceResult ? parseFloat(balanceResult.balance) : 0,
+                                network: selectedNetwork
                             };
                         })
                     );
@@ -95,10 +121,11 @@ const Profile = () => {
             try {
                 const wallet = await fetchWallet(user?.email?.address!);
                 const serverWalletAddress = wallet.wallet.address;
-                const balance = await getWalletBalance(serverWalletAddress);
+                const balanceResult = await getWalletBalance(serverWalletAddress, selectedNetwork);
                 setServerWallet({
                     address: serverWalletAddress,
-                    balance: balance ? parseFloat(balance) : 0,
+                    balance: balanceResult ? parseFloat(balanceResult.balance) : 0,
+                    network: selectedNetwork
                 });
             } catch (error) {
                 console.error("Error fetching server wallet balance:", error);
@@ -107,7 +134,7 @@ const Profile = () => {
 
         fetchServerWalletData();
         fetchWalletData();
-    }, [wallets]);
+    }, [wallets, selectedNetwork]);
 
     const handleCopyAddress = async (address: string) => {
         try {
@@ -120,23 +147,54 @@ const Profile = () => {
     };
 
     const sendTransaction = async () => {
-        if (!selectedWallet) return;
+        if (!selectedWallet || !selectedNetwork) return;
 
         try {
+            // Validate destination address
+            if (!ethers.isAddress(destinationAddress)) {
+                toast.error("Invalid destination address");
+                return;
+            }
+
+            // Validate amount
+            const parsedAmount = parseFloat(amount);
+            if (isNaN(parsedAmount) || parsedAmount <= 0) {
+                toast.error("Invalid transaction amount");
+                return;
+            }
+
             if (selectedWallet.address === serverWallet?.address) {
-                const hash = await sendServerTransaction(user?.email?.address!, destinationAddress, amount);
+                // Server wallet transaction
+                const hash = await sendServerTransaction(
+                    user?.email?.address!,
+                    destinationAddress,
+                    amount,
+                );
+
                 if (hash) {
-                    toast.success("Server wallet transaction successful");
-                    setOpen(false)
+                    toast.success(`Server wallet transaction successful on ${SUPPORTED_NETWORKS[selectedNetwork].name}`);
+                    setOpen(false);
                 }
             } else {
+                // Connected wallet transaction
                 const wallet = wallets.find(wallet => wallet.address === selectedWallet.address);
                 if (!wallet) {
                     console.error('Wallet not found');
                     return;
                 }
 
-                await wallet.switchChain(sepolia.id);
+                // Get the corresponding chain for the selected network
+                const chain = CHAIN_MAP[selectedNetwork as keyof typeof CHAIN_MAP];
+                console.log("Selected chain:", chain);
+                if (!chain) {
+                    toast.error(`Unsupported network: ${selectedNetwork}`);
+                    return;
+                }
+
+                // Switch to the selected chain
+                await wallet.switchChain(chain.id);
+
+                console.log("Chain switched to:", chain.id);
                 const provider = await wallet.getEthereumProvider();
                 if (!provider) {
                     console.error('Ethereum provider is undefined');
@@ -145,7 +203,7 @@ const Profile = () => {
 
                 const walletClient = createWalletClient({
                     account: wallet.address as Hex,
-                    chain: sepolia,
+                    chain: chain,
                     transport: custom(provider),
                 });
 
@@ -154,20 +212,42 @@ const Profile = () => {
                     account: address,
                     to: destinationAddress as `0x${string}`,
                     value: parseEther(amount),
+                    chain: chain,
                 });
 
-                toast.success("Transaction successful");
-                setOpen(false)
-                return hash
+                toast.success(`Transaction successful on ${SUPPORTED_NETWORKS[selectedNetwork].name}`);
+                setOpen(false);
+                return hash;
             }
-        } catch (error) {
-            console.log("Error sending transaction:", error);
-            toast.error("Error sending transaction");
+        } catch (error: any) {
+            console.error("Error sending transaction:", error);
+
+            // Provide more detailed error messaging
+            const errorMessage = error.message || "Error sending transaction";
+            toast.error(errorMessage);
         }
     };
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="mb-4 flex items-center space-x-2">
+                <Globe className="w-5 h-5 text-muted-foreground" />
+                <Select
+                    value={selectedNetwork}
+                    onValueChange={(value: NetworkKey) => setSelectedNetwork(value)}
+                >
+                    <SelectTrigger className="w-[250px]">
+                        <SelectValue placeholder="Select Network" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {Object.entries(SUPPORTED_NETWORKS).map(([key, network]) => (
+                            <SelectItem key={key} value={key}>
+                                {network.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-foreground mb-2">Your Wallet Dashboard</h1>
                 <p className="text-muted-foreground">Manage and monitor your connected wallets</p>
