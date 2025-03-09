@@ -1,30 +1,104 @@
 import { ArrowRight, TrendingUp, Shield, Coins } from 'lucide-react';
-import FloatingIcons from './FloatingIcons';
+// import FloatingIcons from './FloatingIcons';
+import FeatureCarousel from './Carousel';
+import { motion } from "framer-motion"
+import { TypewriterEffectSmooth } from "./ui/typewriter-effect";
+import Login from './Login';
+import Marquee from './ui/marquee';
+
 
 const ExploreSection = () => {
+    const words = [
+        {
+          text: "Do",
+          className: "text-white text-3xl", // Increased font size
+        },
+        {
+          text: "All",
+          className: "text-white text-3xl",
+        },
+        {
+          text: "Things",
+          className: "text-white text-3xl",
+        },
+        {
+          text: "DEFI",
+          className: "text-white text-3xl",
+        },
+        {
+          text: "with",
+          className: "text-white text-3xl",
+        },
+        {
+          text: "PLUTUS",
+          className: "text-white text-4xl font-bold", 
+        },
+      ];
     return (
-        <section className="pt-32 pb-20 bg-neutral-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                    <div className="text-left">
-                        <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent leading-tight">
-                            Explore the Future<br />of Plutus
-                        </h1>
-                        <p className="text-xl text-gray-300 mb-12 max-w-2xl leading-relaxed">
-                            Discover a new way to manage, invest, and grow your wealth with Plutus.
-                            Join thousands of users already transforming their financial future.
-                        </p>
-                        <button className="group px-8 py-4 bg-gradient-to-r from-emerald-400 to-teal-400 text-gray-900 rounded-full hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-300 text-lg font-semibold inline-flex items-center">
-                            Start Exploring
-                            <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                        </button>
-                    </div>
+                <div className="relative isolate overflow-hidden bg-background">
+      <div className="mx-auto max-w-7xl px-6 py-20 lg:flex lg:items-center lg:gap-x-10 lg:px-8">
+        <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-lg lg:flex-shrink-0">
+          <motion.h1
+            className="mt-10 text-4xl font-bold tracking-tight text-foreground sm:text-6xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.4 }}
+          >
+            <TypewriterEffectSmooth words={words} />
+          </motion.h1>
+          <motion.p
+            className="mt-6 text-lg text-center leading-8 text-muted-foreground"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 1 }}
+          >
+            Your One stop platform for all DEFI actions, Get AI recommentations on best APY, Stake with any asset, get rewarded in 
+            $EDU tokens, Use any onchain asset to do your onchain transactions.
+          </motion.p>
+          <motion.div
+            className="mt-10 flex items-center gap-x-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            <button
+  onClick={Login}
+  className="px-6 py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/50 transition duration-300"
+>
+  Login to Dashboard
+</button>
+            <a
+              href="https://www.flowersandsaints.com.au"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold leading-6 text-foreground"
+            >
+              Learn more <span aria-hidden="true">→</span>
+            </a>
+          </motion.div>
+        </div>
+        <motion.div
+          className="mx-auto mt-16 lg:mt-0"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+        >
+          <div className="relative">
+            <img
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/creative-SW6QDQbcVuwPgb6a2CYtYmRbsJa4k1.png"
+              alt="Flowers & Saints design concept"
+              width={600}
+              height={600}
+              className="w-[500px] rounded-2xl shadow-xl ring-1 ring-gray-900/10"
+            />
+          </div>
+        </motion.div> 
+    </div>
                     <div className="relative">
-                        <FloatingIcons />
+                        <FeatureCarousel />
                     </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-20">
+                <div className="grid grid-cols-1 bg-background md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-20">
                     {[
                         {
                             icon: <TrendingUp className="w-6 h-6" />,
@@ -69,8 +143,8 @@ const ExploreSection = () => {
                         </div>
                     ))}
                 </div>
+                < Marquee />
             </div>
-        </section>
     );
 }
 
