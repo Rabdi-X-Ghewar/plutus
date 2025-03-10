@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { holesky } from "viem/chains";
+
 
 // Define supported networks with their Infura endpoints
 export const SUPPORTED_NETWORKS = {

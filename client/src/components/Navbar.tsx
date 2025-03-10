@@ -1,6 +1,5 @@
-import { Wallet } from 'lucide-react';
+
 import Login from './Login';
-import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 
@@ -27,7 +26,7 @@ const Navbar = () => {
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/creative-SW6QDQbcVuwPgb6a2CYtYmRbsJa4k1.png"
             alt="Flowers & Saints Logo"
           />
-          <span className="text-lg font-bold text-foreground">LUMINARI</span>
+          <span className="text-lg font-bold text-foreground">PLUTUS</span>
         </div>
 
         {/* External links */}

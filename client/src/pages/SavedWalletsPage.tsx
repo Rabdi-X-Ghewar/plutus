@@ -92,7 +92,7 @@ const SavedWalletsPage = () => {
                             return {
                                 address: wallet.address,
                                 clientType: wallet.walletClientType,
-                                balance: balance ? parseFloat(balance) : 0,
+                                balance: balance ? parseFloat(balance.balance) : 0,
                             };
                         })
                     );
@@ -110,7 +110,7 @@ const SavedWalletsPage = () => {
                 const balance = await getWalletBalance(serverWalletAddress);
                 setServerWallet({
                     address: serverWalletAddress,
-                    balance: balance ? parseFloat(balance) : 0,
+                    balance: balance ? parseFloat(balance.balance) : 0,
                 });
             } catch (error) {
                 console.error("Error fetching server wallet balance:", error);

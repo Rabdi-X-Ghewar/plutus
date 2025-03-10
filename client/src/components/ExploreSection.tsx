@@ -1,4 +1,4 @@
-import { ArrowRight, TrendingUp, Shield, Coins } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 // import FloatingIcons from './FloatingIcons';
 import FeatureCarousel from './Carousel';
 import { motion } from "framer-motion"
@@ -30,7 +30,7 @@ const ExploreSection = () => {
           className: "text-white text-3xl",
         },
         {
-          text: "LUMINARI",
+          text: "PLUTUS",
           className: "text-white text-4xl font-bold", 
         },
       ];
@@ -39,7 +39,7 @@ const ExploreSection = () => {
             <div className="mx-auto max-w-7xl px-6 py-24 lg:flex lg:items-center lg:gap-x-10 lg:px-8">
                 <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-lg lg:flex-shrink-0">
                     <motion.h1
-                        className="mt-10 text-4xl font-bold tracking-tight text-foreground sm:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-emerald-600"
+                        className="mt-10 text-4xl font-bold tracking-tight sm:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-emerald-600"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1.4 }}

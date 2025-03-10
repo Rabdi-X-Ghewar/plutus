@@ -7,7 +7,7 @@ export default function Marquee() {
       <motion.div
         className="flex whitespace-nowrap"
         animate={{ x: ["0%", "-50%"] }}
-        transition={{ repeat: Number.POSITIVE_INFINITY, ease: "linear", duration: 20 }}
+        transition={{ repeat: Number.POSITIVE_INFINITY, ease: "linear", duration:8 }}
       >
         {[...Array(4)].map((_, index) => (
           <div key={index} className="flex items-center mx-4">
@@ -17,7 +17,7 @@ export default function Marquee() {
                 WebkitTextStroke: "1px rgb(156 163 175)", // tailwind gray-400
               }}
             >
-              OPENCAMPUS
+              SONIC DEBRIDGE ZEREPY 
             </span>
           </div>
         ))}

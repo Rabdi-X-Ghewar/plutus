@@ -72,7 +72,7 @@ const PLUTUS_ASCII = `
 ██████╗ ██╗     ██╗   ██╗████████╗██╗   ██╗███████╗
 ██╔══██╗██║     ██║   ██║╚══██╔══╝██║   ██║██╔════╝
 ██████╔╝██║     ██║   ██║   ██║   ██║   ██║███████╗
-██╔═══╝ ██║     ██║   ██║   ██║███████║╚════██║
+██╔═══╝ ██║     ██║   ██║   ██║    ███████║╚════██║
 ██║     ███████╗╚██████╔╝   ██║   ╚██████╔╝███████║
 ╚═╝     ╚══════╝ ╚═════╝    ╚═╝    ╚═════╝ ╚══════╝
 `;
@@ -102,7 +102,6 @@ const AgentDetails: React.FC = () => {
     connection: string;
     params: Record<string, any>;
   }>({ connection: "", params: {} });
-  const [selectedAgent, setSelectedAgent] = useState<string>("");
   const [selectedConnection, setSelectedConnection] = useState<string>("");
   const [availableActions, setAvailableActions] = useState<any[]>([]);
  const [createAgentJson, setCreateAgentJson] = useState<string>("");
@@ -168,7 +167,7 @@ const AgentDetails: React.FC = () => {
     };
 
     ws.current.onerror = (error) => {
-      addSystemMessage(`WebSocket error: ${error.message}`);
+      addSystemMessage(`WebSocket error: ${(error as ErrorEvent).message}`);
       setIsLoading(false);
     };
   };
@@ -363,26 +362,31 @@ const AgentDetails: React.FC = () => {
 
   // Helper functions for messages
   const addUserMessage = (content: string) => {
-    setMessages((prev) => [
-      ...prev,
-      { type: "user", content, timestamp: new Date() },
-    ]);
+    const newMessage: Message = {
+      type: "user",
+      content,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, newMessage]);
   };
-
+  
   const addAgentMessage = (content: string) => {
-    setMessages((prev) => [
-      ...prev,
-      { type: "agent", content, timestamp: new Date() },
-    ]);
+    const newMessage: Message = {
+      type: "agent",
+      content,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, newMessage]);
   };
-
+  
   const addSystemMessage = (content: string) => {
-    setMessages((prev) => [
-      ...prev,
-      { type: "system", content, timestamp: new Date() },
-    ]);
+    const newMessage: Message = {
+      type: "system",
+      content,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, newMessage]);
   };
-
   const formatTimestamp = (date: Date) =>
     date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
