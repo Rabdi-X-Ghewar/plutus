@@ -14,7 +14,7 @@ from dotenv import set_key
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("server/app")
-AGENT_FOLDER = "C:/Users/gouta/Documents/Projects/Plutus-ZerePy/ZerePy/agents"
+AGENT_FOLDER = "C:/Users/gouta/Documents/Projects/Plutus-ZerePy/plutus/ZerePy/agents"
 # os.makedirs(AGENT_FOLDER, exist_ok=True)
 
 class AgentConfig(BaseModel):
