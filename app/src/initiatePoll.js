@@ -33,7 +33,7 @@ async function initiatePoll() {
         });
         console.log(`👥 Total voters: ${voters.length}. Total leaves (with padding): ${leaves.length}.`);
 
-        // Generate the Merkle tree
+       
         console.log("🛠️ Generating Merkle tree...");
         const merkleTreeInstance = await merkleTree(leaves, hashLeaf, hashInternalNode);
         console.log("✅ Merkle tree generated successfully.");
