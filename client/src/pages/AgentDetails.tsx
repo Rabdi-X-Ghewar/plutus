@@ -18,7 +18,7 @@ import remarkGfm from "remark-gfm";
 import { Message } from "../types/AgentInterfaces";
 
 // --- ZerePyClient Implementation ---
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = "https://plutus-zerepy.onrender.com";
 
 const makeRequest = async (
   method: string,
@@ -148,7 +148,7 @@ const AgentDetails: React.FC = () => {
   }, [currentAgent]);
 
   const setupWebSocket = () => {
-    const websocketUrl = `ws://localhost:8000/chat`;
+    const websocketUrl = `ws://plutus-zerepy.onrender.com/chat`;
     ws.current = new WebSocket(websocketUrl);
 
     ws.current.onopen = () => {
