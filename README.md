@@ -224,30 +224,37 @@ poetry run black .
   }
 }
 ```
+# ZerePy OpenRouter Plugin
 
-Contributions to ZerePy Open Source
-We are proud to have contributed to the official ZerePy GitHub repository by creating a custom plugin that extends its functionality. Our plugin integrates OpenRouter functions , enabling users to leverage free, open-source large language models (LLMs) for advanced AI-driven operations 1.
+## Contributions to ZerePy Open Source
+We are proud to have contributed to the official ZerePy GitHub repository by creating a custom plugin that extends its functionality. Our plugin integrates OpenRouter functions, enabling users to leverage free, open-source large language models (LLMs) for advanced AI-driven operations.
 
-Key Features of the Plugin
-OpenRouter Integration :
-Allows seamless access to free and open-source LLMs, reducing dependency on proprietary models.
-Cost Efficiency :
-Enables users to perform AI-driven tasks without incurring additional costs for premium models.
-Customizability :
-Supports dynamic configuration of LLM parameters, ensuring flexibility for various use cases.
-Enhanced Agent Capabilities :
-Empowers ZerePy agents with expanded AI functionalities, such as natural language processing and real-time decision-making.
+## Key Features of the Plugin
 
-How It Works
-The plugin connects to OpenRouter , a framework that aggregates multiple open-source LLMs, and integrates them into the ZerePy agent system. This allows users to:
+### OpenRouter Integration
+- Allows seamless access to free and open-source LLMs, reducing dependency on proprietary models.
 
-Perform advanced text analysis and generation.
-Automate complex workflows using AI-powered insights.
-Scale operations without relying on paid APIs.
-Contribution Details
-Repository : ![plutuslogo-removebg-preview]((https://github.com/Rabdi-X-Ghewar/plutus/blob/main/ZerePy/src/connections/openrouter_connection.py))
-Plugin Name : openrouter-plugin
-Purpose : To enhance ZerePy's AI capabilities by integrating free, open-source LLMs and create custom plugins.
+### Cost Efficiency
+- Enables users to perform AI-driven tasks without incurring additional costs for premium models.
+
+### Customizability
+- Supports dynamic configuration of LLM parameters, ensuring flexibility for various use cases.
+
+### Enhanced Agent Capabilities
+- Empowers ZerePy agents with expanded AI functionalities, such as natural language processing and real-time decision-making.
+
+## How It Works
+The plugin connects to OpenRouter, a framework that aggregates multiple open-source LLMs, and integrates them into the ZerePy agent system. This allows users to:
+
+- Perform advanced text analysis and generation.
+- Automate complex workflows using AI-powered insights.
+- Scale operations without relying on paid APIs.
+
+## Contribution Details
+- **Repository**: [plutus](https://github.com/Rabdi-X-Ghewar/plutus/blob/main/ZerePy/src/connections/openrouter_connection.py)
+- **Plugin Name**: openrouter-plugin
+- **Purpose**: To enhance ZerePy's AI capabilities by integrating free, open-source LLMs and creating custom plugins.
+
 
 
 
