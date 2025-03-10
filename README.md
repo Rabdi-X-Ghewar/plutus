@@ -1,7 +1,5 @@
 # Plutus - Advanced DeFi tooling on Sonic
 
-![plutuslogo-removebg-preview](https://github.com/user-attachments/assets/d3647a79-1abe-4e83-bfc2-6e22a798b897)
-
 Plutus is a sophisticated DeFi tooling platform that integrates ZerePy's agent framework powered by sonic transactions with Twitter, DeBridge, Goad SDK.
 
 ## Core Features
