@@ -148,7 +148,7 @@ const AgentDetails: React.FC = () => {
   }, [currentAgent]);
 
   const setupWebSocket = () => {
-    const websocketUrl = `ws://plutus-zerepy.onrender.com/chat`;
+    const websocketUrl = `wss://plutus-zerepy.onrender.com/chat`;
     ws.current = new WebSocket(websocketUrl);
 
     ws.current.onopen = () => {
