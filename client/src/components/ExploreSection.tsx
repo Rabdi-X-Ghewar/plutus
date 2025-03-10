@@ -18,11 +18,11 @@ const ExploreSection = () => {
           className: "text-white text-3xl",
         },
         {
-          text: "Things",
+          text: "DEFI",
           className: "text-white text-3xl",
         },
         {
-          text: "DEFI",
+          text: "Tooling",
           className: "text-white text-3xl",
         },
         {
