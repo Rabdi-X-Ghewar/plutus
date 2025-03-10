@@ -26,7 +26,7 @@ Plutus is a sophisticated DeFi management platform that integrates ZerePy's agen
 - **CoinGecko Integration**:
   - Real-time price data
   - Market analytics
-  - API Key: "CG-Qzfh7nAU9WVfNANEfzHsYMSJ"
+  - API Key: "API-KEY"
 
 - **ERC20 Plugin**:
   - Token management
