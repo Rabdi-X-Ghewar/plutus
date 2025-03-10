@@ -9,7 +9,7 @@ contract zkVote {
     /// The address of the ZkvAttestationContract
     address public immutable zkvContract;
     /// The hash of the verification key of the circuit
-    bytes32 public immutable vkHash;
+    bytes32 public immutable vkHash
 
     /// A mapping for recording the addresses which have submitted valid proofs
     mapping(address => bool) public hasSubmittedValidProof;
