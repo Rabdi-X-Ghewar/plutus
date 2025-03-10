@@ -245,7 +245,7 @@ Perform advanced text analysis and generation.
 Automate complex workflows using AI-powered insights.
 Scale operations without relying on paid APIs.
 Contribution Details
-Repository : Plutus Github
+Repository : ![plutuslogo-removebg-preview]((https://github.com/Rabdi-X-Ghewar/plutus/blob/main/ZerePy/src/connections/openrouter_connection.py))
 Plugin Name : openrouter-plugin
 Purpose : To enhance ZerePy's AI capabilities by integrating free, open-source LLMs and create custom plugins.
 
