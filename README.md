@@ -80,7 +80,7 @@ Based on the Shadow Agent configuration:
     }
   ]
 }
-
+```
 
 
 ## DeBridge Integration
